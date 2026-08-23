@@ -1,5 +1,6 @@
 (function () {
   const MAX_LEN = 8; // 최대 PIN 길이 (숫자 제한 없음, 4자리 이상 권장)
+  const MIN_AUTO_LEN = 4; // 이 길이 이상부터 입력할 때마다 자동으로 로그인 시도
   let entered = '';
   let busy = false;
 
@@ -28,6 +29,7 @@
     errEl.classList.remove('show');
   }
 
+  // 확인 버튼으로 명시적으로 제출한 경우: 틀리면 즉시 에러를 보여준다.
   async function tryLogin() {
     if (busy || entered.length === 0) return;
     busy = true;
@@ -41,6 +43,37 @@
       render();
     } finally {
       busy = false;
+    }
+  }
+
+  // 숫자를 입력할 때마다 자동으로 로그인을 시도한다. 맞으면 바로 진입하고,
+  // 아직 다 입력하지 않아서 틀린 것일 수 있으므로 최대 길이에 도달하기
+  // 전까지는 에러를 표시하지 않고 조용히 실패한다.
+  async function attemptAutoLogin() {
+    if (busy) return;
+    const pinAttempt = entered;
+    if (pinAttempt.length < MIN_AUTO_LEN) return;
+
+    busy = true;
+    let succeeded = false;
+    try {
+      await Api.login(pinAttempt);
+      succeeded = true;
+      Api.setPin(pinAttempt);
+      unlock();
+    } catch (e) {
+      if (pinAttempt.length >= MAX_LEN) {
+        showError(e.message || '비밀번호가 올바르지 않습니다.');
+        entered = '';
+        render();
+      }
+    } finally {
+      busy = false;
+    }
+
+    // 요청이 진행되는 동안 사용자가 이어서 입력했다면, 최신 입력값으로 다시 시도한다.
+    if (!succeeded && entered !== pinAttempt && entered.length >= MIN_AUTO_LEN) {
+      attemptAutoLogin();
     }
   }
 
@@ -58,6 +91,7 @@
     if (entered.length >= MAX_LEN) return;
     entered += key;
     render();
+    attemptAutoLogin();
   }
 
   function unlock() {
