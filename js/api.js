@@ -91,6 +91,9 @@
     getDiary(dateStr) {
       return rpc('daily_get_diary', { p_date: dateStr });
     },
+    deleteDiary(dateStr) {
+      return rpc('daily_delete_diary', { p_date: dateStr });
+    },
     listDiary(limit = 30, offset = 0) {
       return rpc('daily_list_diary', { p_limit: limit, p_offset: offset });
     },
@@ -130,6 +133,9 @@
     },
     listExerciseSetCounts() {
       return rpc('daily_list_exercise_set_counts', {});
+    },
+    deleteExerciseLog(id) {
+      return rpc('daily_delete_exercise_log', { p_id: id });
     },
     listNotes() {
       return rpc('daily_list_notes', {});

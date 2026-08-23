@@ -58,8 +58,8 @@
       <div class="admin-item${it.is_active ? '' : ' inactive'}" data-id="${it.id}">
         <div class="admin-content">${Util.escapeHtml(it.content)}</div>
         <div class="admin-actions">
-          <button class="admin-edit" title="수정">✏️</button>
-          <button class="admin-delete" title="삭제">🗑️</button>
+          <button class="admin-edit" title="수정">${Icons.svg('edit')}</button>
+          <button class="admin-delete" title="삭제">${Icons.svg('trash')}</button>
         </div>
       </div>
     `).join('');
@@ -86,13 +86,13 @@
     container.innerHTML = `
       <div class="screen">
         <div class="topbar">
-          <button class="icon-btn" id="back-btn">←</button>
+          <button class="icon-btn" id="back-btn">${Icons.svg('arrowLeft')}</button>
           <h1>확언 관리</h1>
           <span style="width:36px"></span>
         </div>
         <div id="admin-list"><div class="spinner"></div></div>
       </div>
-      <button class="fab" id="add-fab">+</button>
+      <button class="fab" id="add-fab">${Icons.svg('plus')}</button>
     `;
     container.querySelector('#back-btn').addEventListener('click', () => Router.go('morning'));
     container.querySelector('#add-fab').addEventListener('click', () => {

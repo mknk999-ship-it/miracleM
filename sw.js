@@ -1,4 +1,4 @@
-const CACHE_NAME = 'daily-app-v1';
+const CACHE_NAME = 'daily-app-v2';
 const PRECACHE_URLS = [
   './',
   './index.html',
@@ -6,6 +6,7 @@ const PRECACHE_URLS = [
   './css/style.css',
   './js/config.js',
   './js/util.js',
+  './js/icons.js',
   './js/api.js',
   './js/confetti.js',
   './js/router.js',

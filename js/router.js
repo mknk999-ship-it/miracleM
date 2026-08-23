@@ -2,11 +2,11 @@
   const routes = {};
   const NAV_ROUTES = ['home', 'morning', 'exercise', 'diary', 'notes'];
   const NAV_META = {
-    home: { icon: '🏠', label: '홈' },
-    morning: { icon: '🌅', label: '아침' },
-    exercise: { icon: '⏱️', label: '운동' },
-    diary: { icon: '📔', label: '일기' },
-    notes: { icon: '📌', label: '메모' },
+    home: { icon: 'home', label: '홈' },
+    morning: { icon: 'sunrise', label: '아침' },
+    exercise: { icon: 'timer', label: '운동' },
+    diary: { icon: 'book', label: '일기' },
+    notes: { icon: 'pin', label: '메모' },
   };
 
   function register(path, renderFn) {
@@ -32,7 +32,7 @@
       const meta = NAV_META[route];
       const item = document.createElement('button');
       item.className = 'nav-item' + (top === route ? ' active' : '');
-      item.innerHTML = `<span class="nav-icon">${meta.icon}</span><span>${meta.label}</span>`;
+      item.innerHTML = `<span class="nav-icon">${Icons.svg(meta.icon)}</span><span>${meta.label}</span>`;
       item.addEventListener('click', () => go(route));
       nav.appendChild(item);
     });

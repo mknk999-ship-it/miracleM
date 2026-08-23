@@ -32,6 +32,13 @@
 5. PIN을 나중에 바꾸고 싶다면 3번 블록만 다시 실행하면 됩니다 (같은 값을 다시
    `crypt()`로 해시해서 덮어씁니다).
 
+### 1-1. 패치 적용 (일기 / 운동 기록 삭제 기능)
+
+`schema.sql`을 이미 실행한 DB라면, [`patch-01-delete.sql`](./patch-01-delete.sql) 파일
+전체를 SQL Editor에 붙여넣고 실행하세요. `daily_delete_diary`, `daily_delete_exercise_log`
+RPC가 추가됩니다 (`CREATE OR REPLACE` 방식이라 여러 번 실행해도 안전합니다). 메모/확언
+삭제 RPC는 `schema.sql`에 이미 포함되어 있습니다.
+
 ### 2. 정적 파일 배포
 
 이 저장소 자체가 완성된 정적 사이트입니다. 아래 중 편한 방법으로 배포하세요.
@@ -76,10 +83,12 @@ index.html            앱 셸 (잠금 화면 + 화면 컨테이너 + 하단 네�
 manifest.json          PWA 매니페스트
 sw.js                  서비스워커 (정적 자산 캐싱)
 schema.sql             Supabase 테이블 / RLS / RPC 전체
+patch-01-delete.sql     일기 / 운동기록 삭제 RPC 패치 (schema.sql 실행 후 추가로 실행)
 css/style.css          전체 스타일 (딥네이비 + 앰버 테마)
 js/config.js           Supabase URL / anon key 설정
 js/api.js              RPC 호출 래퍼 + PIN 세션 관리
 js/util.js             날짜/시간 포맷, 토스트 등 공통 유틸
+js/icons.js             라인(스트로크) SVG 아이콘 세트
 js/router.js           해시 기반 라우터 + 하단 네비게이션
 js/lock.js             PIN 잠금 화면 로직
 js/confetti.js         최고기록 축하 컨페티 이펙트

@@ -1,5 +1,5 @@
 (function () {
-  async function renderList(container, setCount) {
+  async function renderList(container, setCount, onChanged) {
     const listEl = container.querySelector('#records-list');
     listEl.innerHTML = '<div class="spinner"></div>';
     const records = await Api.listExerciseRecords(setCount);
@@ -8,14 +8,27 @@
       return;
     }
     listEl.innerHTML = records.map((r) => `
-      <div class="rank-row${r.rank <= 3 ? ' rank-' + r.rank : ''}">
+      <div class="rank-row${r.rank <= 3 ? ' rank-' + r.rank : ''}" data-id="${r.id}">
         <div class="rank-num">${r.rank}</div>
         <div class="rank-info">
           <div class="rank-time">${Util.formatStopwatch(r.total_seconds)}</div>
           <div class="rank-date">${Util.formatShortDate(r.log_date)} · ${r.total_sets}세트</div>
         </div>
+        <button class="rank-delete" data-id="${r.id}" title="삭제">${Icons.svg('trash')}</button>
       </div>
     `).join('');
+
+    listEl.querySelectorAll('.rank-delete').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('이 운동 기록을 정말 삭제할까요?')) return;
+        try {
+          await Api.deleteExerciseLog(parseInt(btn.dataset.id, 10));
+          onChanged();
+        } catch (e) {
+          Util.toast(e.message || '삭제 중 오류가 발생했습니다.', { error: true });
+        }
+      });
+    });
   }
 
   async function render(container, params) {
@@ -24,7 +37,7 @@
     container.innerHTML = `
       <div class="screen">
         <div class="topbar">
-          <button class="icon-btn" id="back-btn">←</button>
+          <button class="icon-btn" id="back-btn">${Icons.svg('arrowLeft')}</button>
           <h1>운동 랭킹</h1>
           <span style="width:36px"></span>
         </div>
@@ -34,14 +47,13 @@
     `;
     container.querySelector('#back-btn').addEventListener('click', () => Router.go('exercise'));
 
-    const setCounts = await Api.listExerciseSetCounts();
     const filterEl = container.querySelector('#rank-filter');
     let activeSet = initialSet;
-    if (activeSet !== null && !setCounts.some((s) => s.total_sets === activeSet)) {
-      activeSet = null;
-    }
 
-    function renderFilterButtons() {
+    function renderFilterButtons(setCounts) {
+      if (activeSet !== null && !setCounts.some((s) => s.total_sets === activeSet)) {
+        activeSet = null;
+      }
       const chips = [{ total_sets: null, record_count: null, label: '전체' }, ...setCounts];
       filterEl.innerHTML = chips.map((c) => `
         <button class="rank-filter-btn${activeSet === c.total_sets ? ' active' : ''}" data-set="${c.total_sets ?? ''}">
@@ -52,14 +64,19 @@
         btn.addEventListener('click', () => {
           const v = btn.dataset.set;
           activeSet = v === '' ? null : parseInt(v, 10);
-          renderFilterButtons();
-          renderList(container, activeSet);
+          renderFilterButtons(setCounts);
+          renderList(container, activeSet, refreshAll);
         });
       });
     }
 
-    renderFilterButtons();
-    await renderList(container, activeSet);
+    async function refreshAll() {
+      const setCounts = await Api.listExerciseSetCounts();
+      renderFilterButtons(setCounts);
+      await renderList(container, activeSet, refreshAll);
+    }
+
+    await refreshAll();
   }
 
   Router.register('exercise-records', render);

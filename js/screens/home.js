@@ -42,9 +42,9 @@
       <div class="screen">
         <div class="topbar"><h1>홈</h1></div>
         <div class="month-header">
-          <button class="month-nav-btn" id="prev-month">‹</button>
+          <button class="month-nav-btn" id="prev-month">${Icons.svg('chevronLeft')}</button>
           <h2 id="month-label">${monthLabel(viewYear, viewMonth)}</h2>
-          <button class="month-nav-btn" id="next-month">›</button>
+          <button class="month-nav-btn" id="next-month">${Icons.svg('chevronRight')}</button>
         </div>
         <div class="track-legend">
           <span class="legend-dot"><span class="legend-swatch swatch-diary"></span>일기</span>

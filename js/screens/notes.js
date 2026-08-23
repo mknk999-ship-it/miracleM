@@ -51,7 +51,7 @@
     }
     listEl.innerHTML = notes.map((n) => `
       <div class="note-card${n.is_pinned ? ' pinned' : ''}" data-id="${n.id}">
-        ${n.is_pinned ? '<span class="note-pin-badge">📌</span>' : ''}
+        ${n.is_pinned ? `<span class="note-pin-badge">${Icons.svg('pin')}</span>` : ''}
         <div class="note-content">${Util.escapeHtml(n.content)}</div>
         <div class="note-meta">
           <span>${Util.formatDateLabel(n.updated_at.slice(0, 10))}</span>
@@ -96,7 +96,7 @@
         <div class="topbar"><h1>중요 메모</h1></div>
         <div id="notes-list"><div class="spinner"></div></div>
       </div>
-      <button class="fab" id="add-fab">+</button>
+      <button class="fab" id="add-fab">${Icons.svg('plus')}</button>
     `;
     container.querySelector('#add-fab').addEventListener('click', () => {
       openEditSheet(container, null, () => refreshList(container));

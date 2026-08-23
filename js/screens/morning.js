@@ -56,7 +56,7 @@
       <div class="screen">
         <div class="topbar">
           <h1>아침 루틴</h1>
-          <button class="icon-btn" id="go-admin" title="확언 관리">⚙️</button>
+          <button class="icon-btn" id="go-admin" title="확언 관리">${Icons.svg('settings')}</button>
         </div>
         <div class="wake-hero">
           <button class="wake-btn" id="wake-btn">기상 완료</button>

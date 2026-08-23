@@ -3,7 +3,7 @@
     container.innerHTML = `
       <div class="screen">
         <div class="topbar">
-          <button class="icon-btn" id="back-btn">←</button>
+          <button class="icon-btn" id="back-btn">${Icons.svg('arrowLeft')}</button>
           <h1>지난 일기</h1>
           <span style="width:36px"></span>
         </div>
@@ -19,15 +19,30 @@
       return;
     }
     bodyEl.innerHTML = entries.map((e) => `
-      <button class="diary-list-item" data-date="${e.entry_date}" style="display:block;width:100%;text-align:left;">
-        <div class="diary-list-date">${Util.formatDateLabel(e.entry_date)}</div>
-        <div class="diary-list-preview">${Util.escapeHtml(e.content) || '(내용 없음)'}</div>
-      </button>
+      <div class="diary-list-item">
+        <button class="diary-list-content" data-date="${e.entry_date}">
+          <div class="diary-list-date">${Util.formatDateLabel(e.entry_date)}</div>
+          <div class="diary-list-preview">${Util.escapeHtml(e.content) || '(내용 없음)'}</div>
+        </button>
+        <button class="diary-list-delete" data-date="${e.entry_date}" title="삭제">${Icons.svg('trash')}</button>
+      </div>
     `).join('');
 
-    bodyEl.querySelectorAll('.diary-list-item').forEach((el) => {
+    bodyEl.querySelectorAll('.diary-list-content').forEach((el) => {
       el.addEventListener('click', () => {
         location.hash = `#/diary?date=${el.dataset.date}`;
+      });
+    });
+
+    bodyEl.querySelectorAll('.diary-list-delete').forEach((el) => {
+      el.addEventListener('click', async () => {
+        if (!confirm('이 날짜의 일기를 정말 삭제할까요?')) return;
+        try {
+          await Api.deleteDiary(el.dataset.date);
+          render(container);
+        } catch (err) {
+          Util.toast(err.message || '삭제 중 오류가 발생했습니다.', { error: true });
+        }
       });
     });
   }

@@ -15,15 +15,18 @@
       <div class="screen">
         <div class="topbar">
           <h1>일기</h1>
-          <button class="icon-btn" id="go-list" title="지난 일기">📚</button>
+          <button class="icon-btn" id="go-list" title="지난 일기">${Icons.svg('book')}</button>
         </div>
         <div class="diary-date-picker">
-          <button class="month-nav-btn" id="prev-day">‹</button>
+          <button class="month-nav-btn" id="prev-day">${Icons.svg('chevronLeft')}</button>
           <span class="diary-date-label">${Util.formatDateLabel(dateStr)}${isToday ? ' · 오늘' : ''}</span>
-          <button class="month-nav-btn" id="next-day">›</button>
+          <button class="month-nav-btn" id="next-day">${Icons.svg('chevronRight')}</button>
         </div>
         <textarea class="diary-editor" id="diary-editor" placeholder="오늘 하루는 어땠나요?"></textarea>
-        <div class="hint-text" id="save-status">&nbsp;</div>
+        <div class="diary-footer-row">
+          <div class="hint-text" id="save-status">&nbsp;</div>
+          <button class="text-btn-danger hidden" id="delete-diary-btn">${Icons.svg('trash')} 삭제</button>
+        </div>
       </div>
     `;
 
@@ -59,11 +62,28 @@
     const onLeave = () => { flushSave(); };
     window.addEventListener('hashchange', onLeave, { once: true });
 
+    const deleteBtn = container.querySelector('#delete-diary-btn');
+    deleteBtn.addEventListener('click', async () => {
+      if (!confirm('이 날짜의 일기를 정말 삭제할까요?')) return;
+      clearTimeout(saveTimer);
+      saveTimer = null;
+      try {
+        await Api.deleteDiary(dateStr);
+        editor.value = '';
+        deleteBtn.classList.add('hidden');
+        statusEl.textContent = '삭제됨';
+      } catch (e) {
+        Util.toast(e.message || '삭제 중 오류가 발생했습니다.', { error: true });
+      }
+    });
+
     const existing = await Api.getDiary(dateStr);
     editor.value = existing ? existing.content : '';
     editor.disabled = false;
+    deleteBtn.classList.toggle('hidden', !existing);
 
     editor.addEventListener('input', () => {
+      deleteBtn.classList.remove('hidden');
       statusEl.textContent = '저장 중...';
       clearTimeout(saveTimer);
       saveTimer = setTimeout(async () => {

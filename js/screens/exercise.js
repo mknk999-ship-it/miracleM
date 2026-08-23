@@ -99,7 +99,7 @@
     backdrop.className = 'result-modal-backdrop';
     backdrop.innerHTML = `
       <div class="result-modal${result.is_best ? ' is-best' : ''}">
-        <div class="result-rank">${result.is_best ? '🏆 역대 1위!' : `역대 ${result.rank}위`}</div>
+        <div class="result-rank">${result.is_best ? `${Icons.svg('trophy')} 역대 1위` : `역대 ${result.rank}위`}</div>
         <div class="result-sub">${result.is_best ? '최고 기록을 달성했어요!' : `${totalSets}세트 부문 · 총 ${result.total_in_group}건 중`}</div>
         <div class="result-stats">
           <div>${totalSets}<span>세트</span></div>
@@ -133,7 +133,7 @@
       <div class="screen">
         <div class="topbar">
           <h1>운동</h1>
-          <button class="icon-btn" id="go-records" title="기록/랭킹">🏆</button>
+          <button class="icon-btn" id="go-records" title="기록/랭킹">${Icons.svg('trophy')}</button>
         </div>
         <div class="exercise-guide">1세트 = 푸쉬업 10 · 풀업 5 · 스쿼트 15</div>
         <div class="stopwatch-display">
