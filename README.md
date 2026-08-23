@@ -43,10 +43,15 @@ RPC가 추가됩니다 (`CREATE OR REPLACE` 방식이라 여러 번 실행해도
 
 이 저장소 자체가 완성된 정적 사이트입니다. 아래 중 편한 방법으로 배포하세요.
 
+- **GitHub Pages (권장, 자동 배포 워크플로 포함)**:
+  1. GitHub 저장소 → **Settings → Pages** 로 이동합니다.
+  2. **Build and deployment → Source** 를 `GitHub Actions` 로 선택합니다 (이 저장소에
+     이미 `.github/workflows/deploy-pages.yml` 워크플로가 포함되어 있어서, Source만
+     한 번 지정해두면 이후 `main` 브랜치에 푸시할 때마다 자동으로 배포됩니다).
+  3. Actions 탭에서 `Deploy to GitHub Pages` 워크플로가 실행되는 것을 확인하고,
+     완료되면 Settings → Pages 상단에 표시되는 주소로 접속합니다.
 - **Vercel / Netlify / Cloudflare Pages**: 저장소를 연결하고 빌드 명령 없이
   (Static / "no build") 루트 디렉터리를 그대로 배포합니다.
-- **GitHub Pages**: 저장소 Settings → Pages 에서 브랜치를 `main`, 폴더를 `/`(root)로
-  지정합니다.
 - **로컬 확인**: `python3 -m http.server 8080` 실행 후 `http://localhost:8080` 접속.
 
 정적 파일이므로 별도 빌드 과정(`npm install`, `npm run build` 등)이 필요 없습니다.
