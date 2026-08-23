@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>데일리</title>
+<meta name="description" content="일기 · 말씀 · 운동 · 아침 루틴 · 메모를 관리하는 개인용 데일리 앱">
+
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#0a0e18">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="데일리">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="./icons/favicon-16.png">
+
+<link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+<div id="app">
+  <div id="lock-screen">
+    <div class="lock-title">비밀번호를 입력하세요</div>
+    <div class="lock-dots" id="lock-dots"></div>
+    <div class="lock-error" id="lock-error">&nbsp;</div>
+    <div class="keypad" id="lock-keypad"></div>
+    <button class="btn btn-primary" id="lock-ok-btn" style="margin-top:8px;min-width:200px;">확인</button>
+  </div>
+
+  <div id="app-shell" class="hidden">
+    <div id="screen-container"></div>
+    <nav class="bottom-nav" id="bottom-nav"></nav>
+  </div>
+</div>
+
+<script src="./js/config.js"></script>
+<script src="./js/util.js"></script>
+<script src="./js/api.js"></script>
+<script src="./js/confetti.js"></script>
+<script src="./js/router.js"></script>
+<script src="./js/screens/home.js"></script>
+<script src="./js/screens/morning.js"></script>
+<script src="./js/screens/affirmations_admin.js"></script>
+<script src="./js/screens/exercise.js"></script>
+<script src="./js/screens/exercise_records.js"></script>
+<script src="./js/screens/diary.js"></script>
+<script src="./js/screens/diary_list.js"></script>
+<script src="./js/screens/notes.js"></script>
+<script src="./js/lock.js"></script>
+<script src="./js/main.js"></script>
+</body>
+</html>
