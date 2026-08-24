@@ -30,9 +30,20 @@
   function updateDisplay(container) {
     const timeEl = container.querySelector('#stopwatch-time');
     const setsEl = container.querySelector('#stopwatch-sets');
+    const lapEl = container.querySelector('#stopwatch-lap');
     if (!timeEl) return;
     timeEl.textContent = Util.formatStopwatch(state === 'running' ? elapsedSeconds() : (laps.length ? laps[laps.length - 1].elapsed_seconds : 0));
     setsEl.textContent = `${sets}세트 완료`;
+    if (lapEl) {
+      if (laps.length) {
+        const last = laps[laps.length - 1];
+        const prevElapsed = laps.length > 1 ? laps[laps.length - 2].elapsed_seconds : 0;
+        const lapSeconds = last.elapsed_seconds - prevElapsed;
+        lapEl.textContent = `${last.set_no}세트 소요시간 ${Util.formatStopwatch(lapSeconds)}`;
+      } else {
+        lapEl.textContent = '';
+      }
+    }
   }
 
   function renderControls(container) {
@@ -139,6 +150,7 @@
         <div class="stopwatch-display">
           <div class="stopwatch-time" id="stopwatch-time">00:00.00</div>
           <div class="stopwatch-sets" id="stopwatch-sets">0세트 완료</div>
+          <div class="stopwatch-lap" id="stopwatch-lap"></div>
         </div>
         <div class="exercise-controls" id="exercise-controls"></div>
         <div class="lap-list" id="lap-list"></div>

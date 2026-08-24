@@ -22,9 +22,9 @@
       const dateStr = `${y}-${Util.pad(m)}-${Util.pad(d)}`;
       const isToday = dateStr === todayStr;
       const marks = [];
-      if (diarySet.has(dateStr)) marks.push('<span class="mark-x mark-diary"></span>');
-      if (scriptureSet.has(dateStr)) marks.push('<span class="mark-x mark-scripture"></span>');
-      if (exerciseSet.has(dateStr)) marks.push('<span class="mark-x mark-exercise"></span>');
+      if (diarySet.has(dateStr)) marks.push('<span class="mark-x mark-diary">★</span>');
+      if (scriptureSet.has(dateStr)) marks.push('<span class="mark-x mark-scripture">★★</span>');
+      if (exerciseSet.has(dateStr)) marks.push('<span class="mark-x mark-exercise">★★★</span>');
       html += `
         <button class="cal-day${isToday ? ' today' : ''}" data-date="${dateStr}">
           <span class="day-num">${d}</span>
@@ -47,9 +47,9 @@
           <button class="month-nav-btn" id="next-month">${Icons.svg('chevronRight')}</button>
         </div>
         <div class="track-legend">
-          <span class="legend-dot"><span class="legend-swatch swatch-diary"></span>일기</span>
-          <span class="legend-dot"><span class="legend-swatch swatch-scripture"></span>말씀</span>
-          <span class="legend-dot"><span class="legend-swatch swatch-exercise"></span>운동</span>
+          <span class="legend-dot"><span class="legend-star">★</span>일기</span>
+          <span class="legend-dot"><span class="legend-star">★★</span>말씀</span>
+          <span class="legend-dot"><span class="legend-star">★★★</span>운동</span>
         </div>
         <div class="calendar-grid">
           ${WEEKDAYS.map((w) => `<div class="cal-weekday">${w}</div>`).join('')}

@@ -41,6 +41,57 @@
     });
   }
 
+  function noteCardHtml(n) {
+    return `
+      <div class="note-card${n.is_pinned ? ' pinned' : ''}${n.is_completed ? ' completed' : ''}" data-id="${n.id}">
+        ${n.is_pinned ? `<span class="note-pin-badge">${Icons.svg('pin')}</span>` : ''}
+        <div class="note-content">${Util.escapeHtml(n.content)}</div>
+        <div class="note-meta">
+          <span>${Util.formatDateLabel(n.updated_at.slice(0, 10))}</span>
+          <div class="note-actions">
+            <button class="note-pin-toggle">${n.is_pinned ? '고정 해제' : '고정'}</button>
+            <button class="note-complete-toggle">${n.is_completed ? '완료 취소' : '완료'}</button>
+            <button class="note-edit">수정</button>
+            <button class="note-delete danger">삭제</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function wireNoteCard(container, row, notes, onSaved) {
+    const id = parseInt(row.dataset.id, 10);
+    const note = notes.find((n) => n.id === id);
+    row.querySelector('.note-edit').addEventListener('click', () => {
+      openEditSheet(container, note, onSaved);
+    });
+    row.querySelector('.note-pin-toggle').addEventListener('click', async () => {
+      try {
+        await Api.upsertNote(note.id, note.content, !note.is_pinned);
+        onSaved();
+      } catch (e) {
+        Util.toast(e.message || '처리 중 오류가 발생했습니다.', { error: true });
+      }
+    });
+    row.querySelector('.note-complete-toggle').addEventListener('click', async () => {
+      try {
+        await Api.upsertNote(note.id, note.content, note.is_pinned, !note.is_completed);
+        onSaved();
+      } catch (e) {
+        Util.toast(e.message || '처리 중 오류가 발생했습니다.', { error: true });
+      }
+    });
+    row.querySelector('.note-delete').addEventListener('click', async () => {
+      if (!confirm('이 메모를 삭제할까요?')) return;
+      try {
+        await Api.deleteNote(id);
+        onSaved();
+      } catch (e) {
+        Util.toast(e.message || '삭제 중 오류가 발생했습니다.', { error: true });
+      }
+    });
+  }
+
   async function refreshList(container) {
     const listEl = container.querySelector('#notes-list');
     listEl.innerHTML = '<div class="spinner"></div>';
@@ -49,44 +100,23 @@
       listEl.innerHTML = '<div class="empty-state">등록된 메모가 없어요.</div>';
       return;
     }
-    listEl.innerHTML = notes.map((n) => `
-      <div class="note-card${n.is_pinned ? ' pinned' : ''}" data-id="${n.id}">
-        ${n.is_pinned ? `<span class="note-pin-badge">${Icons.svg('pin')}</span>` : ''}
-        <div class="note-content">${Util.escapeHtml(n.content)}</div>
-        <div class="note-meta">
-          <span>${Util.formatDateLabel(n.updated_at.slice(0, 10))}</span>
-          <div class="note-actions">
-            <button class="note-pin-toggle">${n.is_pinned ? '고정 해제' : '고정'}</button>
-            <button class="note-edit">수정</button>
-            <button class="note-delete danger">삭제</button>
-          </div>
-        </div>
-      </div>
-    `).join('');
 
+    const activeNotes = notes.filter((n) => !n.is_completed);
+    const completedNotes = notes.filter((n) => n.is_completed);
+
+    listEl.innerHTML = `
+      <div id="notes-active">
+        ${activeNotes.length ? activeNotes.map(noteCardHtml).join('') : '<div class="empty-state">등록된 메모가 없어요.</div>'}
+      </div>
+      ${completedNotes.length ? `
+        <div class="section-title">완료된 메모</div>
+        <div id="notes-completed">${completedNotes.map(noteCardHtml).join('')}</div>
+      ` : ''}
+    `;
+
+    const onSaved = () => refreshList(container);
     listEl.querySelectorAll('.note-card').forEach((row) => {
-      const id = parseInt(row.dataset.id, 10);
-      const note = notes.find((n) => n.id === id);
-      row.querySelector('.note-edit').addEventListener('click', () => {
-        openEditSheet(container, note, () => refreshList(container));
-      });
-      row.querySelector('.note-pin-toggle').addEventListener('click', async () => {
-        try {
-          await Api.upsertNote(note.id, note.content, !note.is_pinned);
-          refreshList(container);
-        } catch (e) {
-          Util.toast(e.message || '처리 중 오류가 발생했습니다.', { error: true });
-        }
-      });
-      row.querySelector('.note-delete').addEventListener('click', async () => {
-        if (!confirm('이 메모를 삭제할까요?')) return;
-        try {
-          await Api.deleteNote(id);
-          refreshList(container);
-        } catch (e) {
-          Util.toast(e.message || '삭제 중 오류가 발생했습니다.', { error: true });
-        }
-      });
+      wireNoteCard(container, row, notes, onSaved);
     });
   }
 

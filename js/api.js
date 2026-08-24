@@ -97,6 +97,9 @@
     listDiary(limit = 30, offset = 0) {
       return rpc('daily_list_diary', { p_limit: limit, p_offset: offset });
     },
+    listDiaryMonth(year, month) {
+      return rpc('daily_list_diary_month', { p_year: year, p_month: month });
+    },
     logWake(dateStr) {
       return rpc('daily_log_wake', { p_date: dateStr });
     },
@@ -140,8 +143,8 @@
     listNotes() {
       return rpc('daily_list_notes', {});
     },
-    upsertNote(id, content, isPinned) {
-      return rpc('daily_upsert_note', { p_id: id, p_content: content, p_is_pinned: isPinned });
+    upsertNote(id, content, isPinned, isCompleted = null) {
+      return rpc('daily_upsert_note', { p_id: id, p_content: content, p_is_pinned: isPinned, p_is_completed: isCompleted });
     },
     deleteNote(id) {
       return rpc('daily_delete_note', { p_id: id });

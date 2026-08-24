@@ -15,7 +15,7 @@
       <div class="screen">
         <div class="topbar">
           <h1>일기</h1>
-          <button class="icon-btn" id="go-list" title="지난 일기">${Icons.svg('book')}</button>
+          <button class="icon-btn" id="go-calendar" title="달력으로 보기">${Icons.svg('calendar')}</button>
         </div>
         <div class="diary-date-picker">
           <button class="month-nav-btn" id="prev-day">${Icons.svg('chevronLeft')}</button>
@@ -27,6 +27,7 @@
           <div class="hint-text" id="save-status">&nbsp;</div>
           <button class="text-btn-danger hidden" id="delete-diary-btn">${Icons.svg('trash')} 삭제</button>
         </div>
+        <button class="btn btn-block diary-list-btn" id="go-list">${Icons.svg('book')} 리스트로 보기</button>
       </div>
     `;
 
@@ -46,6 +47,10 @@
       }
     }
 
+    container.querySelector('#go-calendar').addEventListener('click', async () => {
+      await flushSave();
+      Router.go('diary-calendar');
+    });
     container.querySelector('#go-list').addEventListener('click', async () => {
       await flushSave();
       Router.go('diary-list');

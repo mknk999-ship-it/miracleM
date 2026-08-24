@@ -85,14 +85,15 @@ create table if not exists daily_exercise_logs (
   created_at     timestamptz not null default now()
 );
 
--- 1-7. 중요 메모 (고정핀 기능 포함)
+-- 1-7. 중요 메모 (고정핀, 완료 처리 기능 포함)
 create table if not exists daily_notes (
-  id          bigserial primary key,
-  content     text not null,
-  is_pinned   boolean not null default false,
-  user_name   text not null default '세훈',
-  created_at  timestamptz not null default now(),
-  updated_at  timestamptz not null default now()
+  id            bigserial primary key,
+  content       text not null,
+  is_pinned     boolean not null default false,
+  is_completed  boolean not null default false,
+  user_name     text not null default '세훈',
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
 );
 
 create index if not exists idx_daily_diary_date on daily_diary (entry_date);
@@ -100,7 +101,7 @@ create index if not exists idx_daily_scripture_marks_date on daily_scripture_mar
 create index if not exists idx_daily_wake_logs_date on daily_wake_logs (wake_date);
 create index if not exists idx_daily_exercise_logs_date on daily_exercise_logs (log_date);
 create index if not exists idx_daily_exercise_logs_sets on daily_exercise_logs (total_sets, total_seconds);
-create index if not exists idx_daily_notes_pinned on daily_notes (is_pinned, updated_at desc);
+create index if not exists idx_daily_notes_pinned on daily_notes (is_completed, is_pinned, updated_at desc);
 create index if not exists idx_daily_affirmations_active on daily_affirmations (is_active, sort_order);
 
 
@@ -316,6 +317,32 @@ begin
     from daily_diary
     order by entry_date desc
     limit p_limit offset p_offset
+  ) t;
+
+  return v_result;
+end;
+$$;
+
+-- 5-6b. 특정 연/월의 일기 목록 (달력 뷰: 날짜 + 내용, 미리보기 표시용)
+create or replace function daily_list_diary_month(p_pin text, p_year int, p_month int)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_start date := make_date(p_year, p_month, 1);
+  v_end   date := (make_date(p_year, p_month, 1) + interval '1 month')::date;
+  v_result jsonb;
+begin
+  perform daily_verify_pin(p_pin);
+
+  select coalesce(jsonb_agg(t), '[]'::jsonb) into v_result
+  from (
+    select entry_date, content
+    from daily_diary
+    where entry_date >= v_start and entry_date < v_end
+    order by entry_date asc
   ) t;
 
   return v_result;
@@ -554,7 +581,7 @@ begin
 end;
 $$;
 
--- 5-16. 중요 메모 목록 (고정핀 먼저, 그 다음 최신순)
+-- 5-16. 중요 메모 목록 (미완료 먼저, 그 안에서 고정핀 먼저, 그 다음 최신순 / 완료된 메모는 맨 아래로)
 create or replace function daily_list_notes(p_pin text)
 returns jsonb
 language plpgsql
@@ -568,21 +595,24 @@ begin
 
   select coalesce(jsonb_agg(t), '[]'::jsonb) into v_result
   from (
-    select id, content, is_pinned, created_at, updated_at
+    select id, content, is_pinned, is_completed, created_at, updated_at
     from daily_notes
-    order by is_pinned desc, updated_at desc
+    order by is_completed asc, is_pinned desc, updated_at desc
   ) t;
 
   return v_result;
 end;
 $$;
 
--- 5-17. 메모 등록/수정 (p_id 가 null 이면 신규 등록)
+-- 5-17. 메모 등록/수정 (p_id 가 null 이면 신규 등록, p_is_completed 를 null로 주면 기존 값 유지)
+drop function if exists daily_upsert_note(text, bigint, text, boolean);
+
 create or replace function daily_upsert_note(
   p_pin text,
   p_id bigint,
   p_content text,
-  p_is_pinned boolean default false
+  p_is_pinned boolean default false,
+  p_is_completed boolean default null
 )
 returns jsonb
 language plpgsql
@@ -595,13 +625,14 @@ begin
   perform daily_verify_pin(p_pin);
 
   if p_id is null then
-    insert into daily_notes (content, is_pinned, user_name)
-    values (p_content, coalesce(p_is_pinned, false), '세훈')
+    insert into daily_notes (content, is_pinned, is_completed, user_name)
+    values (p_content, coalesce(p_is_pinned, false), coalesce(p_is_completed, false), '세훈')
     returning * into v_row;
   else
     update daily_notes
     set content = p_content,
         is_pinned = coalesce(p_is_pinned, is_pinned),
+        is_completed = coalesce(p_is_completed, is_completed),
         updated_at = now()
     where id = p_id
     returning * into v_row;
@@ -639,6 +670,7 @@ grant execute on function daily_toggle_scripture(text, date) to anon;
 grant execute on function daily_upsert_diary(text, date, text) to anon;
 grant execute on function daily_get_diary(text, date) to anon;
 grant execute on function daily_list_diary(text, int, int) to anon;
+grant execute on function daily_list_diary_month(text, int, int) to anon;
 grant execute on function daily_log_wake(text, date) to anon;
 grant execute on function daily_get_wake(text, date) to anon;
 grant execute on function daily_get_affirmations(text) to anon;
@@ -649,7 +681,7 @@ grant execute on function daily_save_exercise(text, date, int, numeric, jsonb) t
 grant execute on function daily_list_exercise_records(text, int) to anon;
 grant execute on function daily_list_exercise_set_counts(text) to anon;
 grant execute on function daily_list_notes(text) to anon;
-grant execute on function daily_upsert_note(text, bigint, text, boolean) to anon;
+grant execute on function daily_upsert_note(text, bigint, text, boolean, boolean) to anon;
 grant execute on function daily_delete_note(text, bigint) to anon;
 
 -- ============================================================================

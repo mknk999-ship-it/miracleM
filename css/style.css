@@ -8,6 +8,7 @@
   --text-muted: #8a8a90;
   --text-faint: #57575d;
   --danger: #c96a6a;
+  --star: #c9a45c;
   --radius-lg: 18px;
   --radius-md: 13px;
   --radius-sm: 10px;
@@ -359,10 +360,11 @@ a { color: inherit; }
   color: var(--text-muted);
 }
 .legend-dot { display: inline-flex; align-items: center; gap: 7px; }
-.legend-swatch { width: 8px; height: 8px; flex-shrink: 0; }
-.swatch-diary { border-radius: 50%; background: var(--text); }
-.swatch-scripture { border-radius: 50%; background: transparent; border: 1.3px solid var(--text-muted); }
-.swatch-exercise { background: var(--text-muted); transform: rotate(45deg); }
+.legend-star {
+  color: var(--star);
+  font-size: 10px;
+  letter-spacing: -1px;
+}
 
 .calendar-grid {
   display: grid;
@@ -390,11 +392,13 @@ a { color: inherit; }
 .cal-day .day-num { font-size: 13px; color: var(--text-muted); font-weight: 400; }
 .cal-day.today { border: 1px solid var(--text-muted); }
 .cal-day.today .day-num { color: var(--text); font-weight: 500; }
-.cal-day .marks { display: flex; gap: 3px; align-items: center; height: 6px; }
-.cal-day .mark-x { width: 6px; height: 6px; flex-shrink: 0; }
-.mark-diary { border-radius: 50%; background: var(--text); }
-.mark-scripture { border-radius: 50%; background: transparent; border: 1.2px solid var(--text-muted); }
-.mark-exercise { background: var(--text-muted); transform: rotate(45deg); width: 5px; height: 5px; }
+.cal-day .marks { display: flex; flex-direction: column; align-items: center; gap: 1px; height: 16px; justify-content: center; }
+.cal-day .mark-x {
+  color: var(--star);
+  font-size: 7px;
+  line-height: 1;
+  letter-spacing: -1.5px;
+}
 
 .month-stats {
   display: flex;
@@ -511,6 +515,14 @@ a { color: inherit; }
   color: var(--text-muted);
   font-size: 15px;
   font-weight: 400;
+}
+.stopwatch-lap {
+  margin-top: 6px;
+  color: var(--star);
+  font-size: 13px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  min-height: 16px;
 }
 
 .exercise-controls {
@@ -688,6 +700,43 @@ a { color: inherit; }
 }
 .diary-footer-row .hint-text { margin-top: 0; text-align: left; }
 
+.diary-list-btn { width: 100%; margin-top: 20px; }
+
+/* ---------- Diary calendar ---------- */
+.diary-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.diary-cal-day {
+  aspect-ratio: 0.78;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  padding: 6px;
+  gap: 3px;
+  overflow: hidden;
+}
+.diary-cal-day.empty { background: transparent; }
+.diary-cal-day-num { font-size: 12px; color: var(--text-muted); font-weight: 400; }
+.diary-cal-day.today { border: 1px solid var(--text-muted); }
+.diary-cal-day.today .diary-cal-day-num { color: var(--text); font-weight: 500; }
+.diary-cal-day.has-entry { background: var(--surface-2); }
+.diary-cal-day.has-entry .diary-cal-day-num { color: var(--text); }
+.diary-cal-preview {
+  font-size: 10px;
+  line-height: 1.35;
+  color: var(--text-faint);
+  text-align: left;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
 .diary-list-item {
   display: flex;
   align-items: center;
@@ -738,6 +787,8 @@ a { color: inherit; }
   position: relative;
 }
 .note-card.pinned { border-color: var(--text-muted); }
+.note-card.completed { opacity: 0.55; }
+.note-card.completed .note-content { text-decoration: line-through; text-decoration-color: var(--text-faint); }
 .note-pin-badge {
   position: absolute;
   top: 14px;
@@ -756,12 +807,14 @@ a { color: inherit; }
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
   margin-top: 14px;
   font-size: 11px;
   color: var(--text-faint);
 }
-.note-actions { display: flex; gap: 14px; }
-.note-actions button { color: var(--text-muted); font-size: 12px; }
+.note-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.note-actions button { color: var(--text-muted); font-size: 12px; white-space: nowrap; }
 .note-actions button.danger { color: var(--danger); }
 
 /* ---------- Modal / editors ---------- */
