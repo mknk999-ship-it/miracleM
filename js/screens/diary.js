@@ -15,7 +15,6 @@
       <div class="screen">
         <div class="topbar">
           <h1>일기</h1>
-          <button class="icon-btn" id="go-calendar" title="달력으로 보기">${Icons.svg('calendar')}</button>
         </div>
         <div class="diary-date-picker">
           <button class="month-nav-btn" id="prev-day">${Icons.svg('chevronLeft')}</button>
@@ -27,7 +26,10 @@
           <div class="hint-text" id="save-status">&nbsp;</div>
           <button class="text-btn-danger hidden" id="delete-diary-btn">${Icons.svg('trash')} 삭제</button>
         </div>
-        <button class="btn btn-block diary-list-btn" id="go-list">${Icons.svg('book')} 리스트로 보기</button>
+        <div class="diary-bottom-actions">
+          <button class="btn btn-block diary-list-btn" id="go-calendar">${Icons.svg('calendar')} 달력으로 보기</button>
+          <button class="btn btn-block diary-list-btn" id="go-list">${Icons.svg('book')} 리스트로 보기</button>
+        </div>
       </div>
     `;
 
