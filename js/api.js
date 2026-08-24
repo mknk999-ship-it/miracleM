@@ -129,19 +129,23 @@
     deleteAffirmation(id) {
       return rpc('daily_delete_affirmation', { p_id: id });
     },
-    saveExercise(dateStr, totalSets, totalSeconds, laps) {
+    saveExercise(dateStr, totalSets, totalSeconds, laps, exerciseType = 'crossfit') {
       return rpc('daily_save_exercise', {
         p_date: dateStr,
         p_total_sets: totalSets,
         p_total_seconds: totalSeconds,
         p_laps: laps,
+        p_exercise_type: exerciseType,
       });
     },
-    listExerciseRecords(setCount = null) {
-      return rpc('daily_list_exercise_records', { p_set_count: setCount });
+    listExerciseRecords(setCount = null, exerciseType = 'crossfit') {
+      return rpc('daily_list_exercise_records', { p_set_count: setCount, p_exercise_type: exerciseType });
     },
-    listExerciseSetCounts() {
-      return rpc('daily_list_exercise_set_counts', {});
+    listExerciseSetCounts(exerciseType = 'crossfit') {
+      return rpc('daily_list_exercise_set_counts', { p_exercise_type: exerciseType });
+    },
+    listExerciseLogsByDate(dateStr, exerciseType = 'crossfit') {
+      return rpc('daily_list_exercise_logs_by_date', { p_date: dateStr, p_exercise_type: exerciseType });
     },
     deleteExerciseLog(id) {
       return rpc('daily_delete_exercise_log', { p_id: id });

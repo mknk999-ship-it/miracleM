@@ -74,10 +74,12 @@ create table if not exists daily_affirmations (
 );
 
 -- 1-6. 운동 기록 (세트 수, 총 시간, 랩타임 배열, 저장 시점에 자동 X)
---      1세트 = 푸쉬업 10 / 풀업 5 / 스쿼트 15
+--      크로스핏: 1세트 = 푸쉬업 10 / 풀업 5 / 스쿼트 15
+--      플랭크: 1세트 = 플랭크 (첫 세트 1분10초, 이후 1분) + 휴식 1분 반복
 create table if not exists daily_exercise_logs (
   id             bigserial primary key,
   log_date       date not null,
+  exercise_type  text not null default 'crossfit', -- 'crossfit' | 'plank'
   total_sets     integer not null,
   total_seconds  numeric not null,
   laps           jsonb not null default '[]'::jsonb, -- [{set_no, lap_seconds, elapsed_seconds}, ...]
@@ -100,7 +102,7 @@ create index if not exists idx_daily_diary_date on daily_diary (entry_date);
 create index if not exists idx_daily_scripture_marks_date on daily_scripture_marks (mark_date);
 create index if not exists idx_daily_wake_logs_date on daily_wake_logs (wake_date);
 create index if not exists idx_daily_exercise_logs_date on daily_exercise_logs (log_date);
-create index if not exists idx_daily_exercise_logs_sets on daily_exercise_logs (total_sets, total_seconds);
+create index if not exists idx_daily_exercise_logs_sets on daily_exercise_logs (exercise_type, total_sets, total_seconds);
 create index if not exists idx_daily_notes_pinned on daily_notes (is_completed, is_pinned, updated_at desc);
 create index if not exists idx_daily_affirmations_active on daily_affirmations (is_active, sort_order);
 
@@ -542,14 +544,15 @@ begin
 end;
 $$;
 
--- 5-13. 운동 기록 저장 + 같은 세트 수 부문 내 순위 계산해서 반환
---       (1세트 = 푸쉬업 10 / 풀업 5 / 스쿼트 15)
+-- 5-13. 운동 기록 저장 + 같은 종목/세트 수 부문 내 순위 계산해서 반환
+--       (크로스핏 1세트 = 푸쉬업 10 / 풀업 5 / 스쿼트 15, 플랭크는 p_exercise_type='plank')
 create or replace function daily_save_exercise(
   p_pin text,
   p_date date,
   p_total_sets int,
   p_total_seconds numeric,
-  p_laps jsonb default '[]'::jsonb
+  p_laps jsonb default '[]'::jsonb,
+  p_exercise_type text default 'crossfit'
 )
 returns jsonb
 language plpgsql
@@ -563,19 +566,21 @@ declare
 begin
   perform daily_verify_pin(p_pin);
 
-  insert into daily_exercise_logs (log_date, total_sets, total_seconds, laps, user_name)
-  values (p_date, p_total_sets, p_total_seconds, coalesce(p_laps, '[]'::jsonb), '세훈')
+  insert into daily_exercise_logs (log_date, total_sets, total_seconds, laps, user_name, exercise_type)
+  values (p_date, p_total_sets, p_total_seconds, coalesce(p_laps, '[]'::jsonb), '세훈', coalesce(p_exercise_type, 'crossfit'))
   returning id into v_id;
 
   select count(*) + 1 into v_rank
   from daily_exercise_logs
-  where total_sets = p_total_sets
+  where exercise_type = coalesce(p_exercise_type, 'crossfit')
+    and total_sets = p_total_sets
     and total_seconds < p_total_seconds
     and id <> v_id;
 
   select count(*) into v_total_in_group
   from daily_exercise_logs
-  where total_sets = p_total_sets;
+  where exercise_type = coalesce(p_exercise_type, 'crossfit')
+    and total_sets = p_total_sets;
 
   return jsonb_build_object(
     'id', v_id,
@@ -586,8 +591,8 @@ begin
 end;
 $$;
 
--- 5-14. 운동 기록 랭킹 목록 (p_set_count 를 지정하면 해당 세트 수 부문만)
-create or replace function daily_list_exercise_records(p_pin text, p_set_count int default null)
+-- 5-14. 운동 기록 랭킹 목록 (p_set_count 를 지정하면 해당 세트 수 부문만, 종목은 p_exercise_type 기준)
+create or replace function daily_list_exercise_records(p_pin text, p_set_count int default null, p_exercise_type text default 'crossfit')
 returns jsonb
 language plpgsql
 security definer
@@ -603,7 +608,8 @@ begin
     select id, log_date, total_sets, total_seconds, laps,
            row_number() over (partition by total_sets order by total_seconds asc, id asc) as rank
     from daily_exercise_logs
-    where p_set_count is null or total_sets = p_set_count
+    where exercise_type = coalesce(p_exercise_type, 'crossfit')
+      and (p_set_count is null or total_sets = p_set_count)
     order by total_sets asc, rank asc
   ) t;
 
@@ -611,8 +617,8 @@ begin
 end;
 $$;
 
--- 5-15. 존재하는 세트 수 부문 목록 (랭킹 화면 필터용)
-create or replace function daily_list_exercise_set_counts(p_pin text)
+-- 5-15. 존재하는 세트 수 부문 목록 (랭킹 화면 필터용, 종목은 p_exercise_type 기준)
+create or replace function daily_list_exercise_set_counts(p_pin text, p_exercise_type text default 'crossfit')
 returns jsonb
 language plpgsql
 security definer
@@ -627,8 +633,33 @@ begin
   from (
     select total_sets, count(*) as record_count
     from daily_exercise_logs
+    where exercise_type = coalesce(p_exercise_type, 'crossfit')
     group by total_sets
     order by total_sets asc
+  ) t;
+
+  return v_result;
+end;
+$$;
+
+-- 5-15b. 특정 날짜의 운동 기록 목록 (종목별, 오늘 기록 표시 + 삭제 용도)
+create or replace function daily_list_exercise_logs_by_date(p_pin text, p_date date, p_exercise_type text default 'crossfit')
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_result jsonb;
+begin
+  perform daily_verify_pin(p_pin);
+
+  select coalesce(jsonb_agg(t order by created_at desc), '[]'::jsonb) into v_result
+  from (
+    select id, log_date, total_sets, total_seconds, laps, created_at
+    from daily_exercise_logs
+    where log_date = p_date
+      and exercise_type = coalesce(p_exercise_type, 'crossfit')
   ) t;
 
   return v_result;
@@ -733,9 +764,10 @@ grant execute on function daily_get_affirmations(text) to anon;
 grant execute on function daily_admin_list_affirmations(text) to anon;
 grant execute on function daily_upsert_affirmation(text, bigint, text, int, boolean) to anon;
 grant execute on function daily_delete_affirmation(text, bigint) to anon;
-grant execute on function daily_save_exercise(text, date, int, numeric, jsonb) to anon;
-grant execute on function daily_list_exercise_records(text, int) to anon;
-grant execute on function daily_list_exercise_set_counts(text) to anon;
+grant execute on function daily_save_exercise(text, date, int, numeric, jsonb, text) to anon;
+grant execute on function daily_list_exercise_records(text, int, text) to anon;
+grant execute on function daily_list_exercise_set_counts(text, text) to anon;
+grant execute on function daily_list_exercise_logs_by_date(text, date, text) to anon;
 grant execute on function daily_list_notes(text) to anon;
 grant execute on function daily_upsert_note(text, bigint, text, boolean, boolean) to anon;
 grant execute on function daily_delete_note(text, bigint) to anon;
