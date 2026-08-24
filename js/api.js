@@ -106,6 +106,12 @@
     getWake(dateStr) {
       return rpc('daily_get_wake', { p_date: dateStr });
     },
+    listWakeLogs(limit = 90, offset = 0) {
+      return rpc('daily_list_wake_logs', { p_limit: limit, p_offset: offset });
+    },
+    deleteWakeLog(id) {
+      return rpc('daily_delete_wake_log', { p_id: id });
+    },
     getAffirmations() {
       return rpc('daily_get_affirmations', {});
     },

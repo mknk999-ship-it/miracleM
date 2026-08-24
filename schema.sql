@@ -392,6 +392,43 @@ begin
 end;
 $$;
 
+-- 5-8b. 기상 기록 목록 (최신순, 페이지네이션) — "기상 기록" 리스트 화면용
+create or replace function daily_list_wake_logs(p_pin text, p_limit int default 90, p_offset int default 0)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_result jsonb;
+begin
+  perform daily_verify_pin(p_pin);
+
+  select coalesce(jsonb_agg(t), '[]'::jsonb) into v_result
+  from (
+    select id, wake_date, wake_time
+    from daily_wake_logs
+    order by wake_date desc
+    limit p_limit offset p_offset
+  ) t;
+
+  return v_result;
+end;
+$$;
+
+-- 5-8c. 기상 기록 삭제 (id 기준)
+create or replace function daily_delete_wake_log(p_pin text, p_id bigint)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  perform daily_verify_pin(p_pin);
+  delete from daily_wake_logs where id = p_id;
+end;
+$$;
+
 -- 5-9. 확언 카드 목록 (아침 루틴 화면, 활성인 것만 순서대로)
 create or replace function daily_get_affirmations(p_pin text)
 returns jsonb
@@ -673,6 +710,8 @@ grant execute on function daily_list_diary(text, int, int) to anon;
 grant execute on function daily_list_diary_month(text, int, int) to anon;
 grant execute on function daily_log_wake(text, date) to anon;
 grant execute on function daily_get_wake(text, date) to anon;
+grant execute on function daily_list_wake_logs(text, int, int) to anon;
+grant execute on function daily_delete_wake_log(text, bigint) to anon;
 grant execute on function daily_get_affirmations(text) to anon;
 grant execute on function daily_admin_list_affirmations(text) to anon;
 grant execute on function daily_upsert_affirmation(text, bigint, text, int, boolean) to anon;

@@ -28,6 +28,10 @@
 
   async function handleWake(container) {
     const btn = container.querySelector('#wake-btn');
+    if (btn.classList.contains('done')) {
+      Util.toast('오늘은 이미 기상을 기록했어요.');
+      return;
+    }
     btn.disabled = true;
     try {
       const row = await Api.logWake(Util.todayStr());
@@ -56,7 +60,10 @@
       <div class="screen">
         <div class="topbar">
           <h1>아침 루틴</h1>
-          <button class="icon-btn" id="go-admin" title="확언 관리">${Icons.svg('settings')}</button>
+          <div style="display:flex;gap:4px;">
+            <button class="icon-btn" id="go-wake-records" title="기상 기록 보기">${Icons.svg('book')}</button>
+            <button class="icon-btn" id="go-admin" title="확언 관리">${Icons.svg('settings')}</button>
+          </div>
         </div>
         <div class="wake-hero">
           <button class="wake-btn" id="wake-btn">기상 완료</button>
@@ -67,6 +74,7 @@
     `;
 
     container.querySelector('#go-admin').addEventListener('click', () => Router.go('affirmations-admin'));
+    container.querySelector('#go-wake-records').addEventListener('click', () => Router.go('wake-records'));
     container.querySelector('#wake-btn').addEventListener('click', () => handleWake(container));
 
     const [wakeRow, affList] = await Promise.all([
