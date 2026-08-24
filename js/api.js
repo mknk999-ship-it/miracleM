@@ -85,6 +85,9 @@
     toggleScripture(dateStr) {
       return rpc('daily_toggle_scripture', { p_date: dateStr });
     },
+    syncScriptureFromMizpah(dateStr) {
+      return rpc('daily_sync_scripture_from_mizpah', { p_date: dateStr });
+    },
     upsertDiary(dateStr, content) {
       return rpc('daily_upsert_diary', { p_date: dateStr, p_content: content });
     },

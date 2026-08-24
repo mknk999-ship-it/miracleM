@@ -30,17 +30,22 @@
       const count = [diarySet.has(dateStr), scriptureSet.has(dateStr), exerciseSet.has(dateStr)]
         .filter(Boolean).length;
       html += `
-        <button class="cal-day${isToday ? ' today' : ''}" data-date="${dateStr}">
+        <div class="cal-day${isToday ? ' today' : ''}">
           <span class="day-num">${d}</span>
           <span class="marks">${rankBadge(count)}</span>
-        </button>`;
+        </div>`;
     }
     return html;
   }
 
   async function loadAndRender(container) {
-    const data = await Api.getCalendarMonth(viewYear, viewMonth);
     const todayStr = Util.todayStr();
+    try {
+      await Api.syncScriptureFromMizpah(todayStr);
+    } catch (e) {
+      // 미스바 연동 실패해도 달력 자체는 그대로 보여준다
+    }
+    const data = await Api.getCalendarMonth(viewYear, viewMonth);
 
     container.innerHTML = `
       <div class="screen">
@@ -59,7 +64,7 @@
           ${WEEKDAYS.map((w) => `<div class="cal-weekday">${w}</div>`).join('')}
           ${buildDayCells(viewYear, viewMonth, data, todayStr)}
         </div>
-        <div class="hint-text">일기 · 말씀 · 운동 중 완료한 개수만큼 계급장이 올라가요 · 날짜를 터치하면 말씀 읽기 표시를 켜고 끌 수 있어요</div>
+        <div class="hint-text">일기 · 말씀 · 운동 중 완료한 개수만큼 계급장이 올라가요 · 말씀은 미스바 앱에서 읽음을 기록하면 자동으로 표시돼요</div>
         <div class="month-stats">
           <div class="stat-card"><div class="stat-num">${data.diary_count}</div><div class="stat-label">일기</div></div>
           <div class="stat-card"><div class="stat-num">${data.scripture_count}</div><div class="stat-label">말씀</div></div>
@@ -77,20 +82,6 @@
       viewMonth += 1;
       if (viewMonth > 12) { viewMonth = 1; viewYear += 1; }
       loadAndRender(container);
-    });
-
-    container.querySelectorAll('.cal-day[data-date]').forEach((el) => {
-      el.addEventListener('click', async () => {
-        const dateStr = el.dataset.date;
-        el.style.opacity = '0.5';
-        try {
-          await Api.toggleScripture(dateStr);
-          await loadAndRender(container);
-        } catch (e) {
-          Util.toast(e.message || '처리 중 오류가 발생했습니다.', { error: true });
-          el.style.opacity = '1';
-        }
-      });
     });
   }
 
