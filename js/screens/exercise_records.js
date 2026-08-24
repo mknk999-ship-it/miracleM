@@ -45,7 +45,7 @@
         <div id="records-list"><div class="spinner"></div></div>
       </div>
     `;
-    container.querySelector('#back-btn').addEventListener('click', () => Router.go('exercise'));
+    container.querySelector('#back-btn').addEventListener('click', () => Router.go('exercise-crossfit'));
 
     const filterEl = container.querySelector('#rank-filter');
     let activeSet = initialSet;
