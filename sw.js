@@ -1,4 +1,4 @@
-const CACHE_NAME = 'daily-app-v5';
+const CACHE_NAME = 'daily-app-v6';
 const PRECACHE_URLS = [
   './',
   './index.html',
@@ -50,18 +50,17 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // 네트워크 우선: 온라인이면 항상 최신 파일을 받아오고, 오프라인일 때만
+  // 캐시로 대체한다 (설치된 앱이 배포 후에도 계속 예전 버전을 보여주던 문제 수정).
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const networkFetch = fetch(event.request)
-        .then((response) => {
-          if (response && response.ok) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          }
-          return response;
-        })
-        .catch(() => cached);
-      return cached || networkFetch;
-    })
+    fetch(event.request)
+      .then((response) => {
+        if (response && response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
