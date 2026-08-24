@@ -1,4 +1,4 @@
-# 데일리 (miracleM)
+# 미라클M
 
 개인용 데일리 관리 웹앱. 정적 HTML/JS/CSS로 만들어졌고, Supabase REST API(PostgREST)를
 `fetch`로 직접 호출합니다. 별도 프레임워크나 빌드 과정이 없습니다.
@@ -89,7 +89,7 @@ manifest.json          PWA 매니페스트
 sw.js                  서비스워커 (정적 자산 캐싱)
 schema.sql             Supabase 테이블 / RLS / RPC 전체
 patch-01-delete.sql     일기 / 운동기록 삭제 RPC 패치 (schema.sql 실행 후 추가로 실행)
-css/style.css          전체 스타일 (딥네이비 + 앰버 테마)
+css/style.css          전체 스타일 (모노크롬 다크 + 계급장 배지 크롬 톤)
 js/config.js           Supabase URL / anon key 설정
 js/api.js              RPC 호출 래퍼 + PIN 세션 관리
 js/util.js             날짜/시간 포맷, 토스트 등 공통 유틸

@@ -2,6 +2,6 @@
 window.APP_CONFIG = {
   SUPABASE_URL: 'https://puodkclwvouhuncoxphb.supabase.co',
   SUPABASE_KEY: 'sb_publishable_yXmT81L554_3UmSmp4erzQ_sYZxUumo',
-  APP_NAME: '데일리',
+  APP_NAME: '미라클M',
   USER_NAME: '세훈',
 };
