@@ -392,40 +392,57 @@ begin
 end;
 $$;
 
--- 5-8b. 기상 기록 목록 (최신순, 페이지네이션) — "기상 기록" 리스트 화면용
-create or replace function daily_list_wake_logs(p_pin text, p_limit int default 90, p_offset int default 0)
+-- 5-8b. 특정 연/월의 기상 기록 목록 — 아침 루틴 화면의 인라인 달력용
+create or replace function daily_list_wake_month(p_pin text, p_year int, p_month int)
 returns jsonb
 language plpgsql
 security definer
 set search_path = public
 as $$
 declare
+  v_start date := make_date(p_year, p_month, 1);
+  v_end   date := (make_date(p_year, p_month, 1) + interval '1 month')::date;
   v_result jsonb;
 begin
   perform daily_verify_pin(p_pin);
 
   select coalesce(jsonb_agg(t), '[]'::jsonb) into v_result
   from (
-    select id, wake_date, wake_time
+    select wake_date, wake_time
     from daily_wake_logs
-    order by wake_date desc
-    limit p_limit offset p_offset
+    where wake_date >= v_start and wake_date < v_end
+    order by wake_date asc
   ) t;
 
   return v_result;
 end;
 $$;
 
--- 5-8c. 기상 기록 삭제 (id 기준)
-create or replace function daily_delete_wake_log(p_pin text, p_id bigint)
-returns void
+-- 5-8c. 기상 시각을 직접 지정/수정/삭제 (달력에서 날짜를 눌러 보정할 때 사용,
+--       p_wake_time 이 null 이면 해당 날짜 기록을 삭제)
+create or replace function daily_set_wake_time(p_pin text, p_date date, p_wake_time timestamptz)
+returns jsonb
 language plpgsql
 security definer
 set search_path = public
 as $$
+declare
+  v_row daily_wake_logs;
 begin
   perform daily_verify_pin(p_pin);
-  delete from daily_wake_logs where id = p_id;
+
+  if p_wake_time is null then
+    delete from daily_wake_logs where wake_date = p_date and user_name = '세훈';
+    return null;
+  end if;
+
+  insert into daily_wake_logs (wake_date, wake_time, user_name)
+  values (p_date, p_wake_time, '세훈')
+  on conflict (wake_date, user_name)
+  do update set wake_time = excluded.wake_time
+  returning * into v_row;
+
+  return to_jsonb(v_row);
 end;
 $$;
 
@@ -710,8 +727,8 @@ grant execute on function daily_list_diary(text, int, int) to anon;
 grant execute on function daily_list_diary_month(text, int, int) to anon;
 grant execute on function daily_log_wake(text, date) to anon;
 grant execute on function daily_get_wake(text, date) to anon;
-grant execute on function daily_list_wake_logs(text, int, int) to anon;
-grant execute on function daily_delete_wake_log(text, bigint) to anon;
+grant execute on function daily_list_wake_month(text, int, int) to anon;
+grant execute on function daily_set_wake_time(text, date, timestamptz) to anon;
 grant execute on function daily_get_affirmations(text) to anon;
 grant execute on function daily_admin_list_affirmations(text) to anon;
 grant execute on function daily_upsert_affirmation(text, bigint, text, int, boolean) to anon;

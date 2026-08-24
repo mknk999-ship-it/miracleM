@@ -106,11 +106,11 @@
     getWake(dateStr) {
       return rpc('daily_get_wake', { p_date: dateStr });
     },
-    listWakeLogs(limit = 90, offset = 0) {
-      return rpc('daily_list_wake_logs', { p_limit: limit, p_offset: offset });
+    listWakeMonth(year, month) {
+      return rpc('daily_list_wake_month', { p_year: year, p_month: month });
     },
-    deleteWakeLog(id) {
-      return rpc('daily_delete_wake_log', { p_id: id });
+    setWakeTime(dateStr, isoTimeOrNull) {
+      return rpc('daily_set_wake_time', { p_date: dateStr, p_wake_time: isoTimeOrNull });
     },
     getAffirmations() {
       return rpc('daily_get_affirmations', {});
