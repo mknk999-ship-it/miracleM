@@ -602,6 +602,12 @@ a { color: inherit; }
 }
 .plank-phase-badge.is-work { color: var(--text); border-color: var(--text-muted); }
 .plank-phase-badge.is-rest { color: var(--star); border-color: var(--star); }
+.plank-set-no {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+  min-height: 26px;
+}
 .plank-time {
   font-size: 66px;
   font-weight: 500;

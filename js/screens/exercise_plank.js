@@ -26,6 +26,12 @@
     return setNo === 1 ? FIRST_SET_SECONDS : WORK_SECONDS;
   }
 
+  function currentSetNumber() {
+    if (state === 'work') return setsCompleted + 1;
+    if (state === 'rest') return setsCompleted;
+    return 0;
+  }
+
   function renderControls(container) {
     const el = container.querySelector('#plank-controls');
     if (state === 'idle') {
@@ -33,7 +39,7 @@
       el.querySelector('#start-btn').addEventListener('click', () => startExercise(container));
     } else {
       el.innerHTML = `
-        <button class="btn btn-lg" id="set-btn"${state === 'rest' ? ' disabled style="opacity:.4"' : ''}>세트완료</button>
+        <button class="btn btn-lg" id="set-btn"${state === 'rest' ? ' disabled style="opacity:.4"' : ''}>세트종료</button>
         <button class="btn btn-primary btn-lg" id="finish-btn">전체완료</button>
       `;
       if (state === 'work') {
@@ -47,6 +53,7 @@
     const timeEl = container.querySelector('#plank-time');
     const setsEl = container.querySelector('#plank-sets');
     const badgeEl = container.querySelector('#plank-badge');
+    const setNoEl = container.querySelector('#plank-set-no');
     if (!timeEl) return;
 
     if (state === 'work') {
@@ -70,6 +77,7 @@
       badgeEl.textContent = '';
       badgeEl.className = 'plank-phase-badge';
     }
+    setNoEl.textContent = state === 'idle' ? '' : `${currentSetNumber()}세트`;
     setsEl.textContent = `${setsCompleted}세트 완료`;
   }
 
@@ -208,6 +216,7 @@
         <div class="exercise-guide">1세트 = 플랭크(첫 세트 1분10초, 이후 1분) · 휴식 1분, 전체완료 전까지 반복</div>
         <div class="plank-display">
           <div class="plank-phase-badge" id="plank-badge"></div>
+          <div class="plank-set-no" id="plank-set-no"></div>
           <div class="plank-time" id="plank-time">00:00</div>
           <div class="plank-sets" id="plank-sets">0세트 완료</div>
         </div>

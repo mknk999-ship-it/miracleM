@@ -258,6 +258,47 @@ begin
 end;
 $$;
 
+-- 5-3b. 미스바(mizpah_readers) 연동: 이명세훈의 말씀 카운팅이 지난 확인 시점보다
+--       1 이상 올랐으면 해당 날짜에 말씀 X 표시를 자동으로 남긴다.
+--       (홈 화면 진입/새로고침 시마다 호출되며, 터치로 켜고 끄던 기존 방식은
+--        더 이상 쓰지 않는다. 마지막으로 확인한 총량은 daily_settings에 저장.)
+create or replace function daily_sync_scripture_from_mizpah(p_pin text, p_date date default current_date)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_current_total numeric;
+  v_last_total numeric;
+  v_marked boolean := false;
+begin
+  perform daily_verify_pin(p_pin);
+
+  select total into v_current_total from mizpah_readers where name = '이명세훈';
+  v_current_total := coalesce(v_current_total, 0);
+
+  select value::numeric into v_last_total from daily_settings where key = 'mizpah_scripture_last_total';
+  v_last_total := coalesce(v_last_total, 0);
+
+  if v_current_total > v_last_total then
+    insert into daily_scripture_marks (mark_date, user_name) values (p_date, '세훈')
+    on conflict (mark_date, user_name) do nothing;
+    v_marked := true;
+  end if;
+
+  insert into daily_settings (key, value)
+  values ('mizpah_scripture_last_total', v_current_total::text)
+  on conflict (key) do update set value = excluded.value, updated_at = now();
+
+  return jsonb_build_object(
+    'marked_today', v_marked,
+    'current_total', v_current_total,
+    'previous_total', v_last_total
+  );
+end;
+$$;
+
 -- 5-4. 일기 저장/수정 (같은 날짜면 덮어쓰기)
 create or replace function daily_upsert_diary(p_pin text, p_date date, p_content text)
 returns jsonb
@@ -752,6 +793,7 @@ revoke execute on function daily_verify_pin(text) from public, anon, authenticat
 grant execute on function daily_login(text) to anon;
 grant execute on function daily_get_calendar_month(text, int, int) to anon;
 grant execute on function daily_toggle_scripture(text, date) to anon;
+grant execute on function daily_sync_scripture_from_mizpah(text, date) to anon;
 grant execute on function daily_upsert_diary(text, date, text) to anon;
 grant execute on function daily_get_diary(text, date) to anon;
 grant execute on function daily_list_diary(text, int, int) to anon;
