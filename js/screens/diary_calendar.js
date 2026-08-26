@@ -19,8 +19,9 @@
       const dateStr = `${y}-${Util.pad(m)}-${Util.pad(d)}`;
       const isToday = dateStr === todayStr;
       const content = entriesByDate.get(dateStr);
+      const hasPrayer = content && Util.hasPrayer(content);
       html += `
-        <button class="diary-cal-day${isToday ? ' today' : ''}${content ? ' has-entry' : ''}" data-date="${dateStr}">
+        <button class="diary-cal-day${isToday ? ' today' : ''}${content ? ' has-entry' : ''}${hasPrayer ? ' has-prayer' : ''}" data-date="${dateStr}">
           <span class="diary-cal-day-num">${d}</span>
           ${content ? `<span class="diary-cal-preview">${Util.escapeHtml(content)}</span>` : ''}
         </button>`;
