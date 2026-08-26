@@ -115,10 +115,37 @@
       gain.connect(audioCtx.destination);
       const now = audioCtx.currentTime;
       gain.gain.setValueAtTime(0.001, now);
-      gain.gain.exponentialRampToValueAtTime(0.35, now + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.9, now + 0.01);
       gain.gain.exponentialRampToValueAtTime(0.001, now + durationMs / 1000);
       osc.start(now);
       osc.stop(now + durationMs / 1000 + 0.02);
+    } catch (e) {
+      // 오디오 재생 실패는 조용히 무시 (자동재생 정책 등)
+    }
+  }
+
+  // 짧은 삑 소리를 여러 번 반복 재생한다 (오디오 클럭에 미리 예약해서 타이밍이 안정적).
+  function beepTimes(count = 5, freq = 880, durationMs = 120, gapMs = 90) {
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      if (!audioCtx) audioCtx = new Ctx();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const step = (durationMs + gapMs) / 1000;
+      for (let i = 0; i < count; i++) {
+        const startAt = audioCtx.currentTime + i * step;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        gain.gain.setValueAtTime(0.001, startAt);
+        gain.gain.exponentialRampToValueAtTime(0.9, startAt + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, startAt + durationMs / 1000);
+        osc.start(startAt);
+        osc.stop(startAt + durationMs / 1000 + 0.02);
+      }
     } catch (e) {
       // 오디오 재생 실패는 조용히 무시 (자동재생 정책 등)
     }
@@ -150,5 +177,6 @@
     combinePrayerContent,
     unlockAudio,
     beep,
+    beepTimes,
   };
 })();

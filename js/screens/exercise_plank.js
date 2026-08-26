@@ -69,7 +69,7 @@
     } else if (state === 'rest') {
       const remaining = REST_SECONDS - phaseElapsed();
       if (remaining <= 0) {
-        Util.beep();
+        Util.beepTimes(5);
         startWorkPhase(container);
         return;
       }
@@ -114,7 +114,7 @@
 
   function completeSet(container) {
     if (state !== 'work') return;
-    Util.beep();
+    Util.beepTimes(5);
     setsCompleted += 1;
     laps.push({
       set_no: setsCompleted,
