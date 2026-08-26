@@ -26,6 +26,7 @@
           <div class="hint-text" id="save-status">&nbsp;</div>
           <button class="text-btn-danger hidden" id="delete-diary-btn">${Icons.svg('trash')} 삭제</button>
         </div>
+        <button class="text-btn" id="prayer-btn" disabled>기도작성</button>
         <div class="diary-bottom-actions">
           <button class="btn btn-block diary-list-btn" id="go-calendar">${Icons.svg('calendar')} 달력으로 보기</button>
           <button class="btn btn-block diary-list-btn" id="go-list">${Icons.svg('book')} 리스트로 보기</button>
@@ -35,7 +36,12 @@
 
     const editor = container.querySelector('#diary-editor');
     const statusEl = container.querySelector('#save-status');
+    const prayerBtn = container.querySelector('#prayer-btn');
     editor.disabled = true;
+
+    function updatePrayerBtnState() {
+      prayerBtn.classList.toggle('active', Util.hasPrayer(editor.value));
+    }
 
     async function flushSave() {
       if (saveTimer) {
@@ -87,10 +93,13 @@
     const existing = await Api.getDiary(dateStr);
     editor.value = existing ? existing.content : '';
     editor.disabled = false;
+    prayerBtn.disabled = false;
     deleteBtn.classList.toggle('hidden', !existing);
+    updatePrayerBtnState();
 
     editor.addEventListener('input', () => {
       deleteBtn.classList.remove('hidden');
+      updatePrayerBtnState();
       statusEl.textContent = '저장 중...';
       clearTimeout(saveTimer);
       saveTimer = setTimeout(async () => {
@@ -103,6 +112,17 @@
           Util.toast(e.message || '저장 중 오류가 발생했습니다.', { error: true });
         }
       }, 700);
+    });
+
+    prayerBtn.addEventListener('click', () => {
+      if (Util.hasPrayer(editor.value)) {
+        Util.toast('이미 기도문이 포함된 일기예요.');
+        return;
+      }
+      editor.value += (editor.value.trim() ? '\n\n' : '') + Util.PRAYER_MARKER + '\n';
+      editor.focus();
+      editor.setSelectionRange(editor.value.length, editor.value.length);
+      editor.dispatchEvent(new Event('input'));
     });
   }
 

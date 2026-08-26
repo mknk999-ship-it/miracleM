@@ -300,6 +300,19 @@ a { color: inherit; }
 }
 .text-btn-danger .icon { width: 15px; height: 15px; }
 
+.text-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 400;
+  padding: 6px 4px;
+}
+.text-btn:active { color: var(--text); }
+.text-btn.active { color: var(--text); font-weight: 500; }
+.text-btn:disabled { opacity: 0.4; pointer-events: none; }
+
 .fab {
   position: fixed;
   right: 22px;
@@ -864,6 +877,7 @@ a { color: inherit; }
 .diary-cal-day.today .diary-cal-day-num { color: var(--text); font-weight: 500; }
 .diary-cal-day.has-entry { background: var(--surface-2); }
 .diary-cal-day.has-entry .diary-cal-day-num { color: var(--text); }
+.diary-cal-day.has-prayer { border: 1.5px solid var(--text); }
 .diary-cal-preview {
   font-size: 10px;
   line-height: 1.35;
@@ -881,6 +895,12 @@ a { color: inherit; }
   align-items: center;
   gap: 8px;
   border-bottom: 1px solid var(--border);
+}
+.diary-list-item.has-prayer {
+  border: 1.5px solid var(--text);
+  border-radius: var(--radius-md);
+  padding: 0 10px;
+  margin-bottom: 8px;
 }
 .diary-list-content {
   flex: 1;

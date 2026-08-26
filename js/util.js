@@ -62,6 +62,12 @@
     }, 2200);
   }
 
+  const PRAYER_MARKER = '[기도문]';
+
+  function hasPrayer(content) {
+    return !!(content && content.includes(PRAYER_MARKER));
+  }
+
   function escapeHtml(str) {
     return String(str)
       .replace(/&/g, '&amp;')
@@ -82,5 +88,7 @@
     formatDuration,
     toast,
     escapeHtml,
+    PRAYER_MARKER,
+    hasPrayer,
   };
 })();

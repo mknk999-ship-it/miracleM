@@ -19,7 +19,7 @@
       return;
     }
     bodyEl.innerHTML = entries.map((e) => `
-      <div class="diary-list-item">
+      <div class="diary-list-item${Util.hasPrayer(e.content) ? ' has-prayer' : ''}">
         <button class="diary-list-content" data-date="${e.entry_date}">
           <div class="diary-list-date">${Util.formatDateLabel(e.entry_date)}</div>
           <div class="diary-list-preview">${Util.escapeHtml(e.content) || '(내용 없음)'}</div>
