@@ -5,6 +5,15 @@
   let affirmations = [];
   let wakeViewYear, wakeViewMonth; // wakeViewMonth: 1-12
 
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
   function renderDeck(container) {
     const deckEl = container.querySelector('#affirmation-deck');
     if (!deckEl) return;
@@ -214,7 +223,7 @@
       Api.getAffirmations(),
     ]);
     renderWakeState(container, wakeRow ? wakeRow.wake_time : null);
-    affirmations = affList;
+    affirmations = shuffle(affList);
     cardIndex = 0;
     renderDeck(container);
 
