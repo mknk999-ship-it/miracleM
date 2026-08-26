@@ -855,7 +855,7 @@ a { color: inherit; }
 }
 .diary-editor:focus { outline: none; border-color: var(--text-muted); }
 
-.diary-prayer-editor { min-height: 130px; margin-top: 10px; }
+.diary-prayer-editor { min-height: 325px; margin-top: 10px; }
 
 .diary-footer-row {
   display: grid;
