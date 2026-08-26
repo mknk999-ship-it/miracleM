@@ -313,6 +313,8 @@ a { color: inherit; }
 .text-btn.active { color: var(--text); font-weight: 500; }
 .text-btn:disabled { opacity: 0.4; pointer-events: none; }
 
+.diary-prayer-row { text-align: center; margin: 4px 0; }
+
 .fab {
   position: fixed;
   right: 22px;

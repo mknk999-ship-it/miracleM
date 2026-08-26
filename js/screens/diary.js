@@ -26,7 +26,9 @@
           <div class="hint-text" id="save-status">&nbsp;</div>
           <button class="text-btn-danger hidden" id="delete-diary-btn">${Icons.svg('trash')} 삭제</button>
         </div>
-        <button class="text-btn" id="prayer-btn" disabled>기도작성</button>
+        <div class="diary-prayer-row">
+          <button class="text-btn" id="prayer-btn" disabled>기도문있음</button>
+        </div>
         <div class="diary-bottom-actions">
           <button class="btn btn-block diary-list-btn" id="go-calendar">${Icons.svg('calendar')} 달력으로 보기</button>
           <button class="btn btn-block diary-list-btn" id="go-list">${Icons.svg('book')} 리스트로 보기</button>
