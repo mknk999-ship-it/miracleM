@@ -7,10 +7,6 @@
         <h3>${item ? '확언 수정' : '확언 추가'}</h3>
         <textarea id="aff-content" placeholder="확언 문구를 입력하세요">${item ? Util.escapeHtml(item.content) : ''}</textarea>
         <div class="field-row">
-          <span>노출 순서</span>
-          <input type="text" id="aff-sort" inputmode="numeric" style="width:80px;text-align:center;padding:8px;" value="${item ? item.sort_order : 0}">
-        </div>
-        <div class="field-row">
           <span>활성화 (아침 화면에 노출)</span>
           <button type="button" class="switch ${item && !item.is_active ? '' : 'on'}" id="aff-active-switch"><span class="knob"></span></button>
         </div>
@@ -34,10 +30,9 @@
 
     backdrop.querySelector('#aff-save').addEventListener('click', async () => {
       const content = backdrop.querySelector('#aff-content').value.trim();
-      const sortOrder = parseInt(backdrop.querySelector('#aff-sort').value, 10) || 0;
       if (!content) { Util.toast('내용을 입력해주세요.', { error: true }); return; }
       try {
-        await Api.upsertAffirmation(item ? item.id : null, content, sortOrder, isActive);
+        await Api.upsertAffirmation(item ? item.id : null, content, 0, isActive);
         backdrop.remove();
         onSaved();
       } catch (e) {
