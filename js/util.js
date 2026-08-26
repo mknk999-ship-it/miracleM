@@ -87,6 +87,43 @@
     return (mainPart.trim() ? mainPart + '\n\n' : '') + PRAYER_MARKER + '\n' + prayer;
   }
 
+  let audioCtx = null;
+
+  // 오디오 자동재생 제한 때문에, 사용자 클릭(제스처) 시점에 미리 호출해둔다.
+  function unlockAudio() {
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      if (!audioCtx) audioCtx = new Ctx();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    } catch (e) {
+      // 무시 (오디오를 지원하지 않는 환경 등)
+    }
+  }
+
+  function beep(freq = 880, durationMs = 150) {
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      if (!audioCtx) audioCtx = new Ctx();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      const now = audioCtx.currentTime;
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.exponentialRampToValueAtTime(0.35, now + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + durationMs / 1000);
+      osc.start(now);
+      osc.stop(now + durationMs / 1000 + 0.02);
+    } catch (e) {
+      // 오디오 재생 실패는 조용히 무시 (자동재생 정책 등)
+    }
+  }
+
   function escapeHtml(str) {
     return String(str)
       .replace(/&/g, '&amp;')
@@ -111,5 +148,7 @@
     hasPrayer,
     splitPrayerContent,
     combinePrayerContent,
+    unlockAudio,
+    beep,
   };
 })();

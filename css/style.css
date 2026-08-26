@@ -197,6 +197,8 @@ a { color: inherit; }
 .topbar .icon-btn .icon { width: 20px; height: 20px; }
 .topbar .icon-btn:active { background: var(--surface); color: var(--text); }
 
+.topbar-actions { display: flex; align-items: center; gap: 2px; }
+
 .screen {
   padding: 0 22px 24px;
   animation: fadein 0.15s ease;

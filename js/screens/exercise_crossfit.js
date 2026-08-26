@@ -145,7 +145,10 @@
         <div class="topbar">
           <button class="icon-btn" id="back-btn">${Icons.svg('arrowLeft')}</button>
           <h1>크로스핏</h1>
-          <button class="icon-btn" id="go-records" title="기록/랭킹">${Icons.svg('trophy')}</button>
+          <div class="topbar-actions">
+            <button class="icon-btn" id="go-history" title="날짜별 기록">${Icons.svg('calendar')}</button>
+            <button class="icon-btn" id="go-records" title="기록/랭킹">${Icons.svg('trophy')}</button>
+          </div>
         </div>
         <div class="exercise-guide">1세트 = 푸쉬업 10 · 풀업 5 · 스쿼트 15</div>
         <div class="stopwatch-display">
@@ -162,6 +165,7 @@
       Router.go('exercise');
     });
     container.querySelector('#go-records').addEventListener('click', () => Router.go('exercise-records'));
+    container.querySelector('#go-history').addEventListener('click', () => Router.go('exercise-history?type=crossfit'));
     renderControls(container);
     updateDisplay(container);
   }
