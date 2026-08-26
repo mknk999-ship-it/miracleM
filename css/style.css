@@ -313,7 +313,22 @@ a { color: inherit; }
 .text-btn.active { color: var(--text); font-weight: 500; }
 .text-btn:disabled { opacity: 0.4; pointer-events: none; }
 
-.diary-prayer-row { text-align: center; margin: 4px 0; }
+.prayer-checkbox {
+  width: 17px;
+  height: 17px;
+  border: 1.5px solid var(--text-muted);
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.prayer-checkbox .icon { width: 12px; height: 12px; }
+.text-btn.active .prayer-checkbox {
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--bg);
+}
 
 .fab {
   position: fixed;
@@ -841,12 +856,14 @@ a { color: inherit; }
 .diary-editor:focus { outline: none; border-color: var(--text-muted); }
 
 .diary-footer-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
   margin-top: 4px;
 }
-.diary-footer-row .hint-text { margin-top: 0; text-align: left; }
+.diary-footer-row .hint-text { margin-top: 0; text-align: left; justify-self: start; }
+.diary-footer-row .text-btn-danger { justify-self: end; }
 
 .diary-bottom-actions {
   display: flex;
