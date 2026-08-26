@@ -57,13 +57,19 @@
     if (!timeEl) return;
 
     if (state === 'work') {
-      timeEl.textContent = fmt(currentWorkDuration - phaseElapsed());
+      const remaining = currentWorkDuration - phaseElapsed();
+      if (remaining <= 0) {
+        completeSet(container);
+        return;
+      }
+      timeEl.textContent = fmt(remaining);
       timeEl.classList.remove('is-rest');
       badgeEl.textContent = '플랭크 진행중';
       badgeEl.className = 'plank-phase-badge is-work';
     } else if (state === 'rest') {
       const remaining = REST_SECONDS - phaseElapsed();
       if (remaining <= 0) {
+        Util.beep();
         startWorkPhase(container);
         return;
       }
@@ -97,6 +103,7 @@
   }
 
   function startExercise(container) {
+    Util.unlockAudio();
     setsCompleted = 0;
     laps = [];
     sessionStart = Date.now();
@@ -107,6 +114,7 @@
 
   function completeSet(container) {
     if (state !== 'work') return;
+    Util.beep();
     setsCompleted += 1;
     laps.push({
       set_no: setsCompleted,
@@ -211,7 +219,7 @@
         <div class="topbar">
           <button class="icon-btn" id="back-btn">${Icons.svg('arrowLeft')}</button>
           <h1>플랭크</h1>
-          <span style="width:36px"></span>
+          <button class="icon-btn" id="go-history" title="날짜별 기록">${Icons.svg('calendar')}</button>
         </div>
         <div class="exercise-guide">1세트 = 플랭크(첫 세트 1분10초, 이후 1분) · 휴식 1분, 전체완료 전까지 반복</div>
         <div class="plank-display">
@@ -227,6 +235,9 @@
     container.querySelector('#back-btn').addEventListener('click', () => {
       if (tickHandle) clearInterval(tickHandle);
       Router.go('exercise');
+    });
+    container.querySelector('#go-history').addEventListener('click', () => {
+      Router.go('exercise-history?type=plank');
     });
     renderControls(container);
     updateDisplay(container);
