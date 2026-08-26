@@ -30,6 +30,7 @@
           </button>
           <button class="text-btn-danger hidden" id="delete-diary-btn">${Icons.svg('trash')} 삭제</button>
         </div>
+        <textarea class="diary-editor diary-prayer-editor hidden" id="prayer-editor" placeholder="기도문을 적어보세요" disabled></textarea>
         <div class="diary-bottom-actions">
           <button class="btn btn-block diary-list-btn" id="go-calendar">${Icons.svg('calendar')} 달력으로 보기</button>
           <button class="btn btn-block diary-list-btn" id="go-list">${Icons.svg('book')} 리스트로 보기</button>
@@ -38,15 +39,50 @@
     `;
 
     const editor = container.querySelector('#diary-editor');
+    const prayerEditor = container.querySelector('#prayer-editor');
     const statusEl = container.querySelector('#save-status');
     const prayerBtn = container.querySelector('#prayer-btn');
     const prayerCheckbox = container.querySelector('#prayer-checkbox');
     editor.disabled = true;
+    let prayerActive = false;
+
+    function currentContent() {
+      return Util.combinePrayerContent(editor.value, prayerActive ? prayerEditor.value : null);
+    }
 
     function updatePrayerBtnState() {
-      const active = Util.hasPrayer(editor.value);
-      prayerBtn.classList.toggle('active', active);
-      prayerCheckbox.innerHTML = active ? Icons.svg('check') : '';
+      prayerBtn.classList.toggle('active', prayerActive);
+      prayerCheckbox.innerHTML = prayerActive ? Icons.svg('check') : '';
+      prayerEditor.classList.toggle('hidden', !prayerActive);
+    }
+
+    async function persistNow() {
+      clearTimeout(saveTimer);
+      saveTimer = null;
+      statusEl.textContent = '저장 중...';
+      try {
+        await Api.upsertDiary(dateStr, currentContent());
+        statusEl.textContent = '저장됨';
+      } catch (e) {
+        statusEl.textContent = '';
+        Util.toast(e.message || '저장 중 오류가 발생했습니다.', { error: true });
+      }
+    }
+
+    function scheduleSave() {
+      deleteBtn.classList.remove('hidden');
+      statusEl.textContent = '저장 중...';
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(async () => {
+        saveTimer = null;
+        try {
+          await Api.upsertDiary(dateStr, currentContent());
+          statusEl.textContent = '저장됨';
+        } catch (e) {
+          statusEl.textContent = '';
+          Util.toast(e.message || '저장 중 오류가 발생했습니다.', { error: true });
+        }
+      }, 700);
     }
 
     async function flushSave() {
@@ -54,7 +90,7 @@
         clearTimeout(saveTimer);
         saveTimer = null;
         try {
-          await Api.upsertDiary(dateStr, editor.value);
+          await Api.upsertDiary(dateStr, currentContent());
         } catch (e) {
           Util.toast(e.message || '저장 중 오류가 발생했습니다.', { error: true });
         }
@@ -89,6 +125,9 @@
       try {
         await Api.deleteDiary(dateStr);
         editor.value = '';
+        prayerEditor.value = '';
+        prayerActive = false;
+        updatePrayerBtnState();
         deleteBtn.classList.add('hidden');
         statusEl.textContent = '삭제됨';
       } catch (e) {
@@ -97,38 +136,30 @@
     });
 
     const existing = await Api.getDiary(dateStr);
-    editor.value = existing ? existing.content : '';
+    const parsed = Util.splitPrayerContent(existing ? existing.content : '');
+    editor.value = parsed.main;
+    prayerActive = parsed.prayer !== null;
+    prayerEditor.value = parsed.prayer || '';
     editor.disabled = false;
+    prayerEditor.disabled = false;
     prayerBtn.disabled = false;
     deleteBtn.classList.toggle('hidden', !existing);
     updatePrayerBtnState();
 
-    editor.addEventListener('input', () => {
-      deleteBtn.classList.remove('hidden');
-      updatePrayerBtnState();
-      statusEl.textContent = '저장 중...';
-      clearTimeout(saveTimer);
-      saveTimer = setTimeout(async () => {
-        saveTimer = null;
-        try {
-          await Api.upsertDiary(dateStr, editor.value);
-          statusEl.textContent = '저장됨';
-        } catch (e) {
-          statusEl.textContent = '';
-          Util.toast(e.message || '저장 중 오류가 발생했습니다.', { error: true });
-        }
-      }, 700);
-    });
+    editor.addEventListener('input', scheduleSave);
+    prayerEditor.addEventListener('input', scheduleSave);
 
-    prayerBtn.addEventListener('click', () => {
-      if (Util.hasPrayer(editor.value)) {
-        Util.toast('이미 기도문이 포함된 일기예요.');
-        return;
+    prayerBtn.addEventListener('click', async () => {
+      if (prayerActive) {
+        if (prayerEditor.value.trim() && !confirm('작성한 기도문을 삭제할까요?')) return;
+        prayerActive = false;
+        prayerEditor.value = '';
+      } else {
+        prayerActive = true;
       }
-      editor.value += (editor.value.trim() ? '\n\n' : '') + Util.PRAYER_MARKER + '\n';
-      editor.focus();
-      editor.setSelectionRange(editor.value.length, editor.value.length);
-      editor.dispatchEvent(new Event('input'));
+      updatePrayerBtnState();
+      if (prayerActive) prayerEditor.focus();
+      await persistNow();
     });
   }
 
