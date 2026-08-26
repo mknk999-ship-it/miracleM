@@ -68,6 +68,25 @@
     return !!(content && content.includes(PRAYER_MARKER));
   }
 
+  // 일기 본문과 기도문을 하나의 content 필드에 마커로 이어붙여 저장한다.
+  // splitPrayerContent: 저장된 content -> { main, prayer } (마커 없으면 prayer는 null)
+  // combinePrayerContent: { main, prayer } -> content (prayer가 null이면 마커 없이 main만)
+  function splitPrayerContent(raw) {
+    const content = raw || '';
+    const idx = content.indexOf(PRAYER_MARKER);
+    if (idx === -1) return { main: content, prayer: null };
+    return {
+      main: content.slice(0, idx).replace(/\n+$/, ''),
+      prayer: content.slice(idx + PRAYER_MARKER.length).replace(/^\n+/, ''),
+    };
+  }
+
+  function combinePrayerContent(main, prayer) {
+    const mainPart = main || '';
+    if (prayer === null || prayer === undefined) return mainPart;
+    return (mainPart.trim() ? mainPart + '\n\n' : '') + PRAYER_MARKER + '\n' + prayer;
+  }
+
   function escapeHtml(str) {
     return String(str)
       .replace(/&/g, '&amp;')
@@ -90,5 +109,7 @@
     escapeHtml,
     PRAYER_MARKER,
     hasPrayer,
+    splitPrayerContent,
+    combinePrayerContent,
   };
 })();
