@@ -493,8 +493,10 @@ a { color: inherit; }
   padding: 16px 10px;
   text-align: center;
 }
-.stat-card .stat-num { font-size: 21px; font-weight: 500; color: var(--text); }
+.stat-card .stat-num { font-size: 16px; font-weight: 500; color: var(--text-faint); }
 .stat-card .stat-label { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+.stat-card.done { border-color: var(--text-muted); }
+.stat-card.done .stat-num { color: var(--text); }
 
 .hint-text {
   font-size: 12px;

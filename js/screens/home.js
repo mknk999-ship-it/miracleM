@@ -46,6 +46,14 @@
       // 미스바 연동 실패해도 달력 자체는 그대로 보여준다
     }
     const data = await Api.getCalendarMonth(viewYear, viewMonth);
+    const diaryDoneToday = data.diary_dates.includes(todayStr);
+    const scriptureDoneToday = data.scripture_dates.includes(todayStr);
+    const exerciseDoneToday = data.exercise_dates.includes(todayStr);
+    const statCard = (label, done) => `
+      <div class="stat-card${done ? ' done' : ''}">
+        <div class="stat-num">${done ? '완료' : '미완료'}</div>
+        <div class="stat-label">${label}</div>
+      </div>`;
 
     container.innerHTML = `
       <div class="screen">
@@ -66,9 +74,9 @@
         </div>
         <div class="hint-text">일기 · 말씀 · 운동 중 완료한 개수만큼 계급장이 올라가요 · 말씀은 미스바 앱에서 읽음을 기록하면 자동으로 표시돼요</div>
         <div class="month-stats">
-          <div class="stat-card"><div class="stat-num">${data.diary_count}</div><div class="stat-label">일기</div></div>
-          <div class="stat-card"><div class="stat-num">${data.scripture_count}</div><div class="stat-label">말씀</div></div>
-          <div class="stat-card"><div class="stat-num">${data.exercise_count}</div><div class="stat-label">운동</div></div>
+          ${statCard('일기', diaryDoneToday)}
+          ${statCard('말씀', scriptureDoneToday)}
+          ${statCard('운동', exerciseDoneToday)}
         </div>
       </div>
     `;
