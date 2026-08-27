@@ -113,14 +113,59 @@
       } else if (k === 'del') {
         btn.className = 'keypad-btn keypad-del';
         btn.textContent = '지움';
-        btn.addEventListener('click', () => onKey('del'));
+        btn.dataset.key = 'del';
       } else {
         btn.className = 'keypad-btn';
         btn.textContent = k;
-        btn.addEventListener('click', () => onKey(k));
+        btn.dataset.key = k;
       }
       wrap.appendChild(btn);
     });
+    attachDragEntry(wrap);
+  }
+
+  // 톡톡 터치뿐 아니라, 손을 뗴지 않고 숫자 위를 문질러 이어서 입력하는 것도
+  // 지원한다 (패턴 잠금처럼). 처음 누른 지점부터 이동 중 지나가는 숫자 버튼을
+  // 순서대로 입력한다. 지움 버튼은 실수로 쓸어 넘기다 지워지는 걸 막기 위해
+  // 처음 누른 지점이 지움 버튼일 때만(직접 탭) 동작한다.
+  function attachDragEntry(wrap) {
+    let dragging = false;
+    let lastBtn = null;
+
+    function setActive(btn, on) {
+      if (btn) btn.classList.toggle('keypad-btn-touch', on);
+    }
+
+    function processPoint(x, y, isInitialDown) {
+      const el = document.elementFromPoint(x, y);
+      const btn = el && el.closest ? el.closest('.keypad-btn') : null;
+      if (!btn || btn.classList.contains('keypad-empty')) return;
+      if (btn.classList.contains('keypad-del') && !isInitialDown) return;
+      if (btn === lastBtn) return;
+      setActive(lastBtn, false);
+      lastBtn = btn;
+      setActive(btn, true);
+      onKey(btn.dataset.key);
+    }
+
+    function endDrag() {
+      dragging = false;
+      setActive(lastBtn, false);
+      lastBtn = null;
+    }
+
+    wrap.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      dragging = true;
+      try { wrap.setPointerCapture(e.pointerId); } catch (_) { /* 무시 */ }
+      processPoint(e.clientX, e.clientY, true);
+    });
+    wrap.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      processPoint(e.clientX, e.clientY, false);
+    });
+    wrap.addEventListener('pointerup', endDrag);
+    wrap.addEventListener('pointercancel', endDrag);
   }
 
   function init() {
