@@ -141,6 +141,7 @@ a { color: inherit; }
   grid-template-columns: repeat(3, 72px);
   gap: 16px;
   margin-top: 8px;
+  touch-action: none;
 }
 
 .keypad-btn {
@@ -156,8 +157,10 @@ a { color: inherit; }
   align-items: center;
   justify-content: center;
   transition: background 0.1s ease;
+  touch-action: none;
 }
-.keypad-btn:active { background: var(--surface-2); }
+.keypad-btn:active,
+.keypad-btn.keypad-btn-touch { background: var(--surface-2); }
 .keypad-btn.keypad-empty { visibility: hidden; }
 .keypad-btn.keypad-del { font-size: 14px; color: var(--text-muted); }
 
