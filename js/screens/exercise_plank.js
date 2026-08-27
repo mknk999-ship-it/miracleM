@@ -1,9 +1,10 @@
 (function () {
+  const PREP_SECONDS = 10; // 시작하면 첫 세트 전에만 한 번 주어지는 준비 시간
   const FIRST_SET_SECONDS = 70; // 첫 세트는 1분10초
   const WORK_SECONDS = 60; // 이후 세트는 1분
   const REST_SECONDS = 60;
 
-  let state = 'idle'; // idle | work | rest
+  let state = 'idle'; // idle | prepare | work | rest
   let phaseStart = 0;
   let currentWorkDuration = WORK_SECONDS;
   let sessionStart = 0;
@@ -27,7 +28,7 @@
   }
 
   function currentSetNumber() {
-    if (state === 'work') return setsCompleted + 1;
+    if (state === 'work' || state === 'prepare') return setsCompleted + 1;
     if (state === 'rest') return setsCompleted;
     return 0;
   }
@@ -38,8 +39,9 @@
       el.innerHTML = `<button class="btn btn-primary btn-lg btn-block" id="start-btn">시작</button>`;
       el.querySelector('#start-btn').addEventListener('click', () => startExercise(container));
     } else {
+      const setBtnDisabled = state === 'rest' || state === 'prepare';
       el.innerHTML = `
-        <button class="btn btn-lg" id="set-btn"${state === 'rest' ? ' disabled style="opacity:.4"' : ''}>세트종료</button>
+        <button class="btn btn-lg" id="set-btn"${setBtnDisabled ? ' disabled style="opacity:.4"' : ''}>세트종료</button>
         <button class="btn btn-primary btn-lg" id="finish-btn">전체완료</button>
       `;
       if (state === 'work') {
@@ -56,7 +58,19 @@
     const setNoEl = container.querySelector('#plank-set-no');
     if (!timeEl) return;
 
-    if (state === 'work') {
+    if (state === 'prepare') {
+      const remaining = PREP_SECONDS - phaseElapsed();
+      if (remaining <= 0) {
+        Util.beepTimes(5);
+        sessionStart = Date.now();
+        startWorkPhase(container);
+        return;
+      }
+      timeEl.textContent = fmt(remaining);
+      timeEl.classList.remove('is-rest');
+      badgeEl.textContent = '준비 시간';
+      badgeEl.className = 'plank-phase-badge is-prep';
+    } else if (state === 'work') {
       const remaining = currentWorkDuration - phaseElapsed();
       if (remaining <= 0) {
         completeSet(container);
@@ -87,6 +101,13 @@
     setsEl.textContent = `${setsCompleted}세트 완료`;
   }
 
+  function startPrepPhase(container) {
+    state = 'prepare';
+    phaseStart = Date.now();
+    renderControls(container);
+    updateDisplay(container);
+  }
+
   function startWorkPhase(container) {
     state = 'work';
     phaseStart = Date.now();
@@ -108,7 +129,7 @@
     laps = [];
     sessionStart = Date.now();
     if (tickHandle) clearInterval(tickHandle);
-    startWorkPhase(container);
+    startPrepPhase(container);
     tickHandle = setInterval(() => updateDisplay(container), 200);
   }
 
@@ -219,9 +240,9 @@
         <div class="topbar">
           <button class="icon-btn" id="back-btn">${Icons.svg('arrowLeft')}</button>
           <h1>플랭크</h1>
-          <button class="icon-btn" id="go-history" title="날짜별 기록">${Icons.svg('calendar')}</button>
+          <span style="width:36px"></span>
         </div>
-        <div class="exercise-guide">1세트 = 플랭크(첫 세트 1분10초, 이후 1분) · 휴식 1분, 전체완료 전까지 반복</div>
+        <div class="exercise-guide">시작하면 10초 준비 후 첫 세트 진행 · 1세트 = 플랭크(첫 세트 1분10초, 이후 1분) · 휴식 1분, 전체완료 전까지 반복</div>
         <div class="plank-display">
           <div class="plank-phase-badge" id="plank-badge"></div>
           <div class="plank-set-no" id="plank-set-no"></div>
@@ -230,6 +251,9 @@
         </div>
         <div class="exercise-controls" id="plank-controls"></div>
         <div id="plank-today-logs"></div>
+        <div class="exercise-bottom-actions">
+          <button class="btn btn-block" id="go-history">${Icons.svg('calendar')} 달력으로 기록보기</button>
+        </div>
       </div>
     `;
     container.querySelector('#back-btn').addEventListener('click', () => {

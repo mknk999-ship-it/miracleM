@@ -197,7 +197,6 @@ a { color: inherit; }
 .topbar .icon-btn .icon { width: 20px; height: 20px; }
 .topbar .icon-btn:active { background: var(--surface); color: var(--text); }
 
-.topbar-actions { display: flex; align-items: center; gap: 2px; }
 
 .screen {
   padding: 0 22px 24px;
@@ -634,6 +633,7 @@ a { color: inherit; }
 }
 .plank-phase-badge.is-work { color: var(--text); border-color: var(--text-muted); }
 .plank-phase-badge.is-rest { color: var(--star); border-color: var(--star); }
+.plank-phase-badge.is-prep { color: var(--text-muted); border-color: var(--border); }
 .plank-set-no {
   font-size: 22px;
   font-weight: 600;
@@ -696,6 +696,8 @@ a { color: inherit; }
   margin-top: 26px;
 }
 .exercise-controls .btn { flex: 1; }
+
+.exercise-bottom-actions { margin-top: 24px; }
 
 .lap-list {
   margin-top: 22px;

@@ -145,10 +145,7 @@
         <div class="topbar">
           <button class="icon-btn" id="back-btn">${Icons.svg('arrowLeft')}</button>
           <h1>크로스핏</h1>
-          <div class="topbar-actions">
-            <button class="icon-btn" id="go-history" title="날짜별 기록">${Icons.svg('calendar')}</button>
-            <button class="icon-btn" id="go-records" title="기록/랭킹">${Icons.svg('trophy')}</button>
-          </div>
+          <button class="icon-btn" id="go-records" title="기록/랭킹">${Icons.svg('trophy')}</button>
         </div>
         <div class="exercise-guide">1세트 = 푸쉬업 10 · 풀업 5 · 스쿼트 15</div>
         <div class="stopwatch-display">
@@ -158,6 +155,9 @@
         </div>
         <div class="exercise-controls" id="exercise-controls"></div>
         <div class="lap-list" id="lap-list"></div>
+        <div class="exercise-bottom-actions">
+          <button class="btn btn-block" id="go-history">${Icons.svg('calendar')} 달력으로 기록보기</button>
+        </div>
       </div>
     `;
     container.querySelector('#back-btn').addEventListener('click', () => {
