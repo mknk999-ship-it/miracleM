@@ -30,12 +30,40 @@
       const count = [diarySet.has(dateStr), scriptureSet.has(dateStr), exerciseSet.has(dateStr)]
         .filter(Boolean).length;
       html += `
-        <div class="cal-day${isToday ? ' today' : ''}">
+        <button class="cal-day${isToday ? ' today' : ''}" data-date="${dateStr}">
           <span class="day-num">${d}</span>
           <span class="marks">${rankBadge(count)}</span>
-        </div>`;
+        </button>`;
     }
     return html;
+  }
+
+  function openDayDetailSheet(dateStr, data) {
+    const diaryDone = data.diary_dates.includes(dateStr);
+    const scriptureDone = data.scripture_dates.includes(dateStr);
+    const exerciseDone = data.exercise_dates.includes(dateStr);
+    const statusRow = (label, done) => `
+      <div class="field-row">
+        <span>${label}</span>
+        <span class="${done ? 'status-done' : 'status-undone'}">${done ? '완료' : '미완료'}</span>
+      </div>`;
+
+    const backdrop = document.createElement('div');
+    backdrop.className = 'sheet-backdrop';
+    backdrop.innerHTML = `
+      <div class="sheet">
+        <h3>${Util.formatDateLabel(dateStr)}</h3>
+        ${statusRow('일기', diaryDone)}
+        ${statusRow('말씀', scriptureDone)}
+        ${statusRow('운동', exerciseDone)}
+        <div class="sheet-actions">
+          <button class="btn btn-block" id="day-detail-close">닫기</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(backdrop);
+    backdrop.addEventListener('click', (e) => { if (e.target === backdrop) backdrop.remove(); });
+    backdrop.querySelector('#day-detail-close').addEventListener('click', () => backdrop.remove());
   }
 
   async function loadAndRender(container) {
@@ -72,7 +100,7 @@
           ${WEEKDAYS.map((w) => `<div class="cal-weekday">${w}</div>`).join('')}
           ${buildDayCells(viewYear, viewMonth, data, todayStr)}
         </div>
-        <div class="hint-text">일기 · 말씀 · 운동 중 완료한 개수만큼 계급장이 올라가요 · 말씀은 미스바 앱에서 읽음을 기록하면 자동으로 표시돼요</div>
+        <div class="hint-text">일기 · 말씀 · 운동 중 완료한 개수만큼 계급장이 올라가요<br>말씀은 미스바 앱에서 읽음을 기록하면 자동으로 표시돼요</div>
         <div class="month-stats">
           ${statCard('일기', diaryDoneToday)}
           ${statCard('말씀', scriptureDoneToday)}
@@ -90,6 +118,10 @@
       viewMonth += 1;
       if (viewMonth > 12) { viewMonth = 1; viewYear += 1; }
       loadAndRender(container);
+    });
+
+    container.querySelectorAll('.cal-day[data-date]').forEach((el) => {
+      el.addEventListener('click', () => openDayDetailSheet(el.dataset.date, data));
     });
   }
 
