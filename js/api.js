@@ -150,6 +150,9 @@
     listExerciseLogsByDate(dateStr, exerciseType = 'crossfit') {
       return rpc('daily_list_exercise_logs_by_date', { p_date: dateStr, p_exercise_type: exerciseType });
     },
+    listExerciseLogsMonth(year, month, exerciseType = 'crossfit') {
+      return rpc('daily_list_exercise_logs_month', { p_year: year, p_month: month, p_exercise_type: exerciseType });
+    },
     deleteExerciseLog(id) {
       return rpc('daily_delete_exercise_log', { p_id: id });
     },
