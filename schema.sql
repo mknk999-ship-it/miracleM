@@ -707,6 +707,32 @@ begin
 end;
 $$;
 
+-- 5-15c. 특정 연/월의 운동 기록 목록 (종목별, 날짜별 기록 달력용)
+create or replace function daily_list_exercise_logs_month(p_pin text, p_year int, p_month int, p_exercise_type text default 'crossfit')
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_start date := make_date(p_year, p_month, 1);
+  v_end   date := (make_date(p_year, p_month, 1) + interval '1 month')::date;
+  v_result jsonb;
+begin
+  perform daily_verify_pin(p_pin);
+
+  select coalesce(jsonb_agg(t order by log_date asc, created_at asc), '[]'::jsonb) into v_result
+  from (
+    select id, log_date, total_sets, total_seconds, created_at
+    from daily_exercise_logs
+    where log_date >= v_start and log_date < v_end
+      and exercise_type = coalesce(p_exercise_type, 'crossfit')
+  ) t;
+
+  return v_result;
+end;
+$$;
+
 -- 5-16. 중요 메모 목록 (미완료 먼저, 그 안에서 고정핀 먼저, 그 다음 최신순 / 완료된 메모는 맨 아래로)
 create or replace function daily_list_notes(p_pin text)
 returns jsonb
@@ -810,6 +836,7 @@ grant execute on function daily_save_exercise(text, date, int, numeric, jsonb, t
 grant execute on function daily_list_exercise_records(text, int, text) to anon;
 grant execute on function daily_list_exercise_set_counts(text, text) to anon;
 grant execute on function daily_list_exercise_logs_by_date(text, date, text) to anon;
+grant execute on function daily_list_exercise_logs_month(text, int, int, text) to anon;
 grant execute on function daily_list_notes(text) to anon;
 grant execute on function daily_upsert_note(text, bigint, text, boolean, boolean) to anon;
 grant execute on function daily_delete_note(text, bigint) to anon;
