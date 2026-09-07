@@ -14,6 +14,13 @@
       title: '플랭크',
       sub: '1분 플랭크 · 1분 휴식 반복 타이머',
     },
+    {
+      route: 'exercise-running',
+      icon: 'shoe',
+      accent: 'plain',
+      title: '달리기',
+      sub: '거리와 기록을 입력해서 저장',
+    },
   ];
 
   async function render(container) {

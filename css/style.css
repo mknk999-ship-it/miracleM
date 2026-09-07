@@ -704,6 +704,12 @@ a { color: inherit; }
 
 .exercise-bottom-actions { margin-top: 24px; }
 
+.running-form { display: flex; flex-direction: column; gap: 16px; margin-bottom: 8px; }
+.running-field { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--text-muted); }
+.running-field input { padding: 14px; font-size: 16px; }
+.running-time-fields { display: flex; gap: 12px; }
+.running-time-fields .running-field { flex: 1; }
+
 .lap-list {
   margin-top: 22px;
   display: flex;
