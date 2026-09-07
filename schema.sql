@@ -76,12 +76,14 @@ create table if not exists daily_affirmations (
 -- 1-6. 운동 기록 (세트 수, 총 시간, 랩타임 배열, 저장 시점에 자동 X)
 --      크로스핏: 1세트 = 푸쉬업 10 / 풀업 5 / 스쿼트 15
 --      플랭크: 1세트 = 플랭크 (첫 세트 1분10초, 이후 1분) + 휴식 1분 반복
+--      달리기: 세트 개념 없이 거리(distance_km)+기록(total_seconds)만 직접 입력
 create table if not exists daily_exercise_logs (
   id             bigserial primary key,
   log_date       date not null,
-  exercise_type  text not null default 'crossfit', -- 'crossfit' | 'plank'
+  exercise_type  text not null default 'crossfit', -- 'crossfit' | 'plank' | 'running'
   total_sets     integer not null,
   total_seconds  numeric not null,
+  distance_km    numeric, -- 달리기 전용 (km), 다른 종목은 null
   laps           jsonb not null default '[]'::jsonb, -- [{set_no, lap_seconds, elapsed_seconds}, ...]
   user_name      text not null default '세훈',
   created_at     timestamptz not null default now()
@@ -593,7 +595,8 @@ create or replace function daily_save_exercise(
   p_total_sets int,
   p_total_seconds numeric,
   p_laps jsonb default '[]'::jsonb,
-  p_exercise_type text default 'crossfit'
+  p_exercise_type text default 'crossfit',
+  p_distance_km numeric default null
 )
 returns jsonb
 language plpgsql
@@ -607,8 +610,8 @@ declare
 begin
   perform daily_verify_pin(p_pin);
 
-  insert into daily_exercise_logs (log_date, total_sets, total_seconds, laps, user_name, exercise_type)
-  values (p_date, p_total_sets, p_total_seconds, coalesce(p_laps, '[]'::jsonb), '세훈', coalesce(p_exercise_type, 'crossfit'))
+  insert into daily_exercise_logs (log_date, total_sets, total_seconds, laps, user_name, exercise_type, distance_km)
+  values (p_date, p_total_sets, p_total_seconds, coalesce(p_laps, '[]'::jsonb), '세훈', coalesce(p_exercise_type, 'crossfit'), p_distance_km)
   returning id into v_id;
 
   select count(*) + 1 into v_rank
@@ -697,7 +700,7 @@ begin
 
   select coalesce(jsonb_agg(t order by created_at desc), '[]'::jsonb) into v_result
   from (
-    select id, log_date, total_sets, total_seconds, laps, created_at
+    select id, log_date, total_sets, total_seconds, distance_km, laps, created_at
     from daily_exercise_logs
     where log_date = p_date
       and exercise_type = coalesce(p_exercise_type, 'crossfit')
@@ -723,7 +726,7 @@ begin
 
   select coalesce(jsonb_agg(t order by log_date asc, created_at asc), '[]'::jsonb) into v_result
   from (
-    select id, log_date, total_sets, total_seconds, created_at
+    select id, log_date, total_sets, total_seconds, distance_km, created_at
     from daily_exercise_logs
     where log_date >= v_start and log_date < v_end
       and exercise_type = coalesce(p_exercise_type, 'crossfit')
@@ -832,7 +835,7 @@ grant execute on function daily_get_affirmations(text) to anon;
 grant execute on function daily_admin_list_affirmations(text) to anon;
 grant execute on function daily_upsert_affirmation(text, bigint, text, int, boolean) to anon;
 grant execute on function daily_delete_affirmation(text, bigint) to anon;
-grant execute on function daily_save_exercise(text, date, int, numeric, jsonb, text) to anon;
+grant execute on function daily_save_exercise(text, date, int, numeric, jsonb, text, numeric) to anon;
 grant execute on function daily_list_exercise_records(text, int, text) to anon;
 grant execute on function daily_list_exercise_set_counts(text, text) to anon;
 grant execute on function daily_list_exercise_logs_by_date(text, date, text) to anon;

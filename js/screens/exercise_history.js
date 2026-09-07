@@ -4,12 +4,20 @@
     crossfit: {
       title: '크로스핏 기록',
       backRoute: 'exercise-crossfit',
-      formatTime: (s) => Util.formatStopwatch(s),
+      formatAgg: (agg) => `${agg.sets}세트<br>${Util.formatDuration(agg.seconds)}`,
+      formatSession: (log) => `${log.total_sets}세트 · ${Util.formatStopwatch(log.total_seconds)}`,
     },
     plank: {
       title: '플랭크 기록',
       backRoute: 'exercise-plank',
-      formatTime: (s) => Util.formatDuration(s),
+      formatAgg: (agg) => `${agg.sets}세트<br>${Util.formatDuration(agg.seconds)}`,
+      formatSession: (log) => `${log.total_sets}세트 · ${Util.formatDuration(log.total_seconds)}`,
+    },
+    running: {
+      title: '달리기 기록',
+      backRoute: 'exercise-running',
+      formatAgg: (agg) => `${agg.distance.toFixed(1)}km<br>${Util.formatDuration(agg.seconds)}`,
+      formatSession: (log) => `${Number(log.distance_km).toFixed(2)}km · ${Util.formatDuration(log.total_seconds)}`,
     },
   };
 
@@ -22,15 +30,16 @@
   function aggregateByDate(logs) {
     const map = new Map();
     logs.forEach((log) => {
-      const cur = map.get(log.log_date) || { sets: 0, seconds: 0 };
+      const cur = map.get(log.log_date) || { sets: 0, seconds: 0, distance: 0 };
       cur.sets += log.total_sets;
       cur.seconds += Number(log.total_seconds);
+      cur.distance += Number(log.distance_km || 0);
       map.set(log.log_date, cur);
     });
     return map;
   }
 
-  function buildDayCells(y, m, byDate, todayStr) {
+  function buildDayCells(y, m, byDate, todayStr, meta) {
     const firstDay = new Date(y, m - 1, 1);
     const startOffset = firstDay.getDay();
     const daysInMonth = new Date(y, m, 0).getDate();
@@ -46,7 +55,7 @@
       html += `
         <button class="diary-cal-day${isToday ? ' today' : ''}${agg ? ' has-entry' : ''}" data-date="${dateStr}">
           <span class="diary-cal-day-num">${d}</span>
-          ${agg ? `<span class="diary-cal-preview">${agg.sets}세트<br>${Util.formatDuration(agg.seconds)}</span>` : ''}
+          ${agg ? `<span class="diary-cal-preview">${meta.formatAgg(agg)}</span>` : ''}
         </button>`;
     }
     return html;
@@ -71,7 +80,7 @@
           ${logs.length === 0 ? '<div class="empty-state">이 날짜에는 기록이 없어요.</div>' : logs.map((log) => `
             <div class="rank-row" data-id="${log.id}">
               <div class="rank-info">
-                <div class="rank-time">${log.total_sets}세트 · ${meta.formatTime(log.total_seconds)}</div>
+                <div class="rank-time">${meta.formatSession(log)}</div>
                 <div class="rank-date">${Util.formatTimeOfDay(log.created_at)}</div>
               </div>
               <button class="rank-delete" data-id="${log.id}" title="삭제">${Icons.svg('trash')}</button>
@@ -125,7 +134,7 @@
         </div>
         <div class="diary-cal-grid">
           ${WEEKDAYS.map((w) => `<div class="cal-weekday">${w}</div>`).join('')}
-          ${buildDayCells(viewYear, viewMonth, byDate, todayStr)}
+          ${buildDayCells(viewYear, viewMonth, byDate, todayStr, meta)}
         </div>
         <div class="hint-text">날짜를 누르면 그날의 기록을 자세히 보고 삭제할 수 있어요</div>
       </div>
@@ -148,7 +157,8 @@
   }
 
   async function render(container, params) {
-    currentType = params.get('type') === 'plank' ? 'plank' : 'crossfit';
+    const type = params.get('type');
+    currentType = TYPE_META[type] ? type : 'crossfit';
     const now = new Date();
     viewYear = now.getFullYear();
     viewMonth = now.getMonth() + 1;

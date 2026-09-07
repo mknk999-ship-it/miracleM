@@ -132,13 +132,14 @@
     deleteAffirmation(id) {
       return rpc('daily_delete_affirmation', { p_id: id });
     },
-    saveExercise(dateStr, totalSets, totalSeconds, laps, exerciseType = 'crossfit') {
+    saveExercise(dateStr, totalSets, totalSeconds, laps, exerciseType = 'crossfit', distanceKm = null) {
       return rpc('daily_save_exercise', {
         p_date: dateStr,
         p_total_sets: totalSets,
         p_total_seconds: totalSeconds,
         p_laps: laps,
         p_exercise_type: exerciseType,
+        p_distance_km: distanceKm,
       });
     },
     listExerciseRecords(setCount = null, exerciseType = 'crossfit') {
