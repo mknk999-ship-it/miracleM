@@ -772,6 +772,15 @@ a { color: inherit; }
   pointer-events: none;
 }
 
+.run-grade-preview {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+  min-height: 18px;
+  margin-top: 4px;
+}
+.run-grade { color: var(--star); font-weight: 600; }
+
 .lap-list {
   margin-top: 22px;
   display: flex;

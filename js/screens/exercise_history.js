@@ -16,8 +16,14 @@
     running: {
       title: '달리기 기록',
       backRoute: 'exercise-running',
-      formatAgg: (agg) => `${agg.distance.toFixed(1)}km<br>${Util.formatDuration(agg.seconds)}`,
-      formatSession: (log) => `${Number(log.distance_km).toFixed(2)}km · ${Util.formatDuration(log.total_seconds)}`,
+      formatAgg: (agg) => {
+        const grade = Util.runningGrade(agg.distance, agg.seconds);
+        return `${agg.distance.toFixed(1)}km<br>${Util.formatDuration(agg.seconds)}${grade ? `<br><span class="run-grade">${grade.label}</span>` : ''}`;
+      },
+      formatSession: (log) => {
+        const grade = Util.runningGrade(log.distance_km, log.total_seconds);
+        return `${Number(log.distance_km).toFixed(2)}km · ${Util.formatDuration(log.total_seconds)}${grade ? ` · <span class="run-grade">${grade.label}</span>` : ''}`;
+      },
     },
   };
 
