@@ -704,11 +704,73 @@ a { color: inherit; }
 
 .exercise-bottom-actions { margin-top: 24px; }
 
-.running-form { display: flex; flex-direction: column; gap: 16px; margin-bottom: 8px; }
-.running-field { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--text-muted); }
-.running-field input { padding: 14px; font-size: 16px; }
-.running-time-fields { display: flex; gap: 12px; }
-.running-time-fields .running-field { flex: 1; }
+.run-section { margin-bottom: 28px; }
+
+.run-distance-display {
+  text-align: center;
+  margin: 8px 0 18px;
+  font-variant-numeric: tabular-nums;
+}
+.run-distance-display #run-distance-value { font-size: 44px; font-weight: 600; color: var(--text); }
+.run-distance-display .run-distance-unit { font-size: 18px; font-weight: 400; color: var(--text-muted); margin-left: 6px; }
+
+.run-distance-buttons { display: flex; gap: 10px; }
+.run-chip {
+  flex: 1;
+  padding: 14px 0;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 500;
+  text-align: center;
+}
+.run-chip:active { background: var(--surface-2); }
+
+.run-wheel-row {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  padding: 4px 0 8px;
+}
+.run-wheel-group { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.run-wheel-caption { font-size: 12px; color: var(--text-muted); }
+
+.wheel-viewport {
+  width: 92px;
+  height: 132px;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.wheel-viewport::-webkit-scrollbar { display: none; }
+.wheel-list { padding: 44px 0; }
+.wheel-item {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  scroll-snap-align: center;
+  font-size: 19px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+}
+.wheel-item.selected { color: var(--text); font-weight: 600; font-size: 23px; }
+
+.wheel-highlight {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 44px;
+  border-top: 1.5px solid var(--text-muted);
+  border-bottom: 1.5px solid var(--text-muted);
+  pointer-events: none;
+}
 
 .lap-list {
   margin-top: 22px;

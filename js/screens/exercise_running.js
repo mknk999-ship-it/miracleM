@@ -1,8 +1,48 @@
 (function () {
-  function toSeconds(minutesStr, secondsStr) {
-    const m = parseInt(minutesStr, 10) || 0;
-    const s = parseInt(secondsStr, 10) || 0;
-    return m * 60 + s;
+  const WHEEL_ITEM_HEIGHT = 44;
+
+  function createWheel(viewportEl, { min, max, initial, onChange }) {
+    const values = [];
+    for (let v = min; v <= max; v++) values.push(v);
+
+    viewportEl.innerHTML = `
+      <div class="wheel-list">
+        ${values.map((v) => `<div class="wheel-item" data-value="${v}">${Util.pad(v)}</div>`).join('')}
+      </div>
+    `;
+    const items = Array.from(viewportEl.querySelectorAll('.wheel-item'));
+    let current = Math.min(Math.max(initial, min), max);
+
+    function setSelected(v) {
+      current = v;
+      items.forEach((it) => it.classList.toggle('selected', Number(it.dataset.value) === v));
+    }
+
+    function scrollToValue(v, smooth) {
+      viewportEl.scrollTo({ top: (v - min) * WHEEL_ITEM_HEIGHT, behavior: smooth ? 'smooth' : 'auto' });
+    }
+
+    scrollToValue(current, false);
+    setSelected(current);
+
+    let scrollTimer = null;
+    viewportEl.addEventListener('scroll', () => {
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => {
+        const idx = Math.min(Math.max(Math.round(viewportEl.scrollTop / WHEEL_ITEM_HEIGHT), 0), values.length - 1);
+        const v = values[idx];
+        if (viewportEl.scrollTop !== idx * WHEEL_ITEM_HEIGHT) scrollToValue(v, true);
+        if (v !== current) {
+          setSelected(v);
+          onChange(v);
+        }
+      }, 120);
+    });
+
+    return {
+      get value() { return current; },
+      set(v) { scrollToValue(v, true); setSelected(v); },
+    };
   }
 
   function renderTodayLogs(container, logs) {
@@ -47,6 +87,8 @@
   }
 
   async function render(container) {
+    let distanceKm = 0;
+
     container.innerHTML = `
       <div class="screen">
         <div class="topbar">
@@ -55,22 +97,37 @@
           <span style="width:36px"></span>
         </div>
         <div class="exercise-guide">달린 거리와 기록(시간)을 입력하고 저장하세요</div>
-        <div class="running-form">
-          <label class="running-field">
-            <span>거리 (km)</span>
-            <input type="number" id="run-distance" inputmode="decimal" step="0.01" min="0" placeholder="예: 5.2">
-          </label>
-          <div class="running-time-fields">
-            <label class="running-field">
-              <span>기록 · 분</span>
-              <input type="number" id="run-minutes" inputmode="numeric" min="0" placeholder="0">
-            </label>
-            <label class="running-field">
-              <span>초</span>
-              <input type="number" id="run-seconds" inputmode="numeric" min="0" max="59" placeholder="0">
-            </label>
+
+        <div class="run-section">
+          <div class="section-title-row">
+            <div class="section-title">거리</div>
+            <button class="text-link" id="run-distance-reset">초기화</button>
+          </div>
+          <div class="run-distance-display">
+            <span id="run-distance-value">0.0</span><span class="run-distance-unit">km</span>
+          </div>
+          <div class="run-distance-buttons">
+            <button type="button" class="run-chip" data-add="0.5">+500m</button>
+            <button type="button" class="run-chip" data-add="1">+1km</button>
+            <button type="button" class="run-chip" data-add="3">+3km</button>
           </div>
         </div>
+
+        <div class="run-section">
+          <div class="section-title">기록</div>
+          <div class="run-wheel-row">
+            <div class="wheel-highlight"></div>
+            <div class="run-wheel-group">
+              <div class="wheel-viewport" id="wheel-minutes"></div>
+              <div class="run-wheel-caption">분</div>
+            </div>
+            <div class="run-wheel-group">
+              <div class="wheel-viewport" id="wheel-seconds"></div>
+              <div class="run-wheel-caption">초</div>
+            </div>
+          </div>
+        </div>
+
         <div class="exercise-controls">
           <button class="btn btn-primary btn-lg btn-block" id="save-run-btn">저장</button>
         </div>
@@ -86,14 +143,28 @@
       Router.go('exercise-history?type=running');
     });
 
-    container.querySelector('#save-run-btn').addEventListener('click', async () => {
-      const distanceInput = container.querySelector('#run-distance');
-      const minutesInput = container.querySelector('#run-minutes');
-      const secondsInput = container.querySelector('#run-seconds');
-      const distance = parseFloat(distanceInput.value);
-      const totalSeconds = toSeconds(minutesInput.value, secondsInput.value);
+    const distanceValueEl = container.querySelector('#run-distance-value');
+    function updateDistanceDisplay() {
+      distanceValueEl.textContent = distanceKm.toFixed(1);
+    }
+    container.querySelectorAll('.run-chip').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        distanceKm = Math.round((distanceKm + Number(btn.dataset.add)) * 10) / 10;
+        updateDistanceDisplay();
+      });
+    });
+    container.querySelector('#run-distance-reset').addEventListener('click', () => {
+      distanceKm = 0;
+      updateDistanceDisplay();
+    });
 
-      if (!distance || distance <= 0) {
+    const minutesWheel = createWheel(container.querySelector('#wheel-minutes'), { min: 0, max: 300, initial: 0, onChange: () => {} });
+    const secondsWheel = createWheel(container.querySelector('#wheel-seconds'), { min: 0, max: 59, initial: 0, onChange: () => {} });
+
+    container.querySelector('#save-run-btn').addEventListener('click', async () => {
+      const totalSeconds = minutesWheel.value * 60 + secondsWheel.value;
+
+      if (!distanceKm || distanceKm <= 0) {
         Util.toast('거리를 입력해주세요.', { error: true });
         return;
       }
@@ -103,10 +174,11 @@
       }
 
       try {
-        await Api.saveExercise(Util.todayStr(), 1, totalSeconds, [], 'running', Math.round(distance * 100) / 100);
-        distanceInput.value = '';
-        minutesInput.value = '';
-        secondsInput.value = '';
+        await Api.saveExercise(Util.todayStr(), 1, totalSeconds, [], 'running', distanceKm);
+        distanceKm = 0;
+        updateDistanceDisplay();
+        minutesWheel.set(0);
+        secondsWheel.set(0);
         Util.toast('달리기 기록이 저장되었어요!');
         await refreshTodayLogs(container);
       } catch (e) {
