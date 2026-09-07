@@ -151,6 +151,20 @@
     }
   }
 
+  // 남자 31~35세 3km 기준 등급표(1급 4:44/km, 2급 5:08/km, 3급 5:32/km 이내)를
+  // km당 페이스로 환산해 거리와 무관하게 적용한다.
+  const RUNNING_GRADE_THRESHOLDS = [
+    { grade: 1, label: '1급', maxPaceSec: 4 * 60 + 44 },
+    { grade: 2, label: '2급', maxPaceSec: 5 * 60 + 8 },
+    { grade: 3, label: '3급', maxPaceSec: 5 * 60 + 32 },
+  ];
+
+  function runningGrade(distanceKm, totalSeconds) {
+    if (!distanceKm || distanceKm <= 0 || !totalSeconds || totalSeconds <= 0) return null;
+    const paceSec = totalSeconds / distanceKm;
+    return RUNNING_GRADE_THRESHOLDS.find((t) => paceSec <= t.maxPaceSec) || null;
+  }
+
   function escapeHtml(str) {
     return String(str)
       .replace(/&/g, '&amp;')
@@ -178,5 +192,6 @@
     unlockAudio,
     beep,
     beepTimes,
+    runningGrade,
   };
 })();
