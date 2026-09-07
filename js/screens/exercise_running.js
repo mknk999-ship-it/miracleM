@@ -1,9 +1,15 @@
 (function () {
   const WHEEL_ITEM_HEIGHT = 44;
 
-  function createWheel(viewportEl, { min, max, initial, onChange }) {
+  function createWheel(viewportEl, { min, max, initial, onChange, circular = false }) {
+    const rangeSize = max - min + 1;
+    const REPEATS = circular ? 5 : 1;
+    const middleRepeat = Math.floor(REPEATS / 2);
+
     const values = [];
-    for (let v = min; v <= max; v++) values.push(v);
+    for (let r = 0; r < REPEATS; r++) {
+      for (let v = min; v <= max; v++) values.push(v);
+    }
 
     viewportEl.innerHTML = `
       <div class="wheel-list">
@@ -11,37 +17,59 @@
       </div>
     `;
     const items = Array.from(viewportEl.querySelectorAll('.wheel-item'));
-    let current = Math.min(Math.max(initial, min), max);
 
-    function setSelected(v) {
-      current = v;
-      items.forEach((it) => it.classList.toggle('selected', Number(it.dataset.value) === v));
+    function idxForValue(v) { return middleRepeat * rangeSize + (v - min); }
+
+    let currentIdx = idxForValue(Math.min(Math.max(initial, min), max));
+    let current = values[currentIdx];
+
+    function setSelectedIdx(idx) {
+      currentIdx = idx;
+      current = values[idx];
+      items.forEach((it, i) => it.classList.toggle('selected', i === idx));
     }
 
-    function scrollToValue(v, smooth) {
-      viewportEl.scrollTo({ top: (v - min) * WHEEL_ITEM_HEIGHT, behavior: smooth ? 'smooth' : 'auto' });
+    function scrollToIdx(idx, smooth) {
+      viewportEl.scrollTo({ top: idx * WHEEL_ITEM_HEIGHT, behavior: smooth ? 'smooth' : 'auto' });
     }
 
-    scrollToValue(current, false);
-    setSelected(current);
+    scrollToIdx(currentIdx, false);
+    setSelectedIdx(currentIdx);
 
     let scrollTimer = null;
     viewportEl.addEventListener('scroll', () => {
       clearTimeout(scrollTimer);
       scrollTimer = setTimeout(() => {
-        const idx = Math.min(Math.max(Math.round(viewportEl.scrollTop / WHEEL_ITEM_HEIGHT), 0), values.length - 1);
-        const v = values[idx];
-        if (viewportEl.scrollTop !== idx * WHEEL_ITEM_HEIGHT) scrollToValue(v, true);
-        if (v !== current) {
-          setSelected(v);
-          onChange(v);
+        let idx = Math.min(Math.max(Math.round(viewportEl.scrollTop / WHEEL_ITEM_HEIGHT), 0), values.length - 1);
+
+        if (circular) {
+          const repeatIndex = Math.floor(idx / rangeSize);
+          if (repeatIndex !== middleRepeat) {
+            // 바깥쪽 사본으로 넘어갔으면, 같은 값의 가운데 사본으로 티 안 나게 되돌린다 (무한 스크롤처럼 보이게)
+            idx = idxForValue(values[idx]);
+            viewportEl.scrollTop = idx * WHEEL_ITEM_HEIGHT;
+          } else if (viewportEl.scrollTop !== idx * WHEEL_ITEM_HEIGHT) {
+            scrollToIdx(idx, true);
+          }
+        } else if (viewportEl.scrollTop !== idx * WHEEL_ITEM_HEIGHT) {
+          scrollToIdx(idx, true);
+        }
+
+        if (idx !== currentIdx) {
+          const changed = values[idx] !== current;
+          setSelectedIdx(idx);
+          if (changed) onChange(current);
         }
       }, 120);
     });
 
     return {
       get value() { return current; },
-      set(v) { scrollToValue(v, true); setSelected(v); },
+      set(v) {
+        const idx = idxForValue(v);
+        scrollToIdx(idx, true);
+        setSelectedIdx(idx);
+      },
     };
   }
 
@@ -179,7 +207,7 @@
     });
 
     const minutesWheel = createWheel(container.querySelector('#wheel-minutes'), { min: 0, max: 300, initial: 0, onChange: updateGradePreview });
-    const secondsWheel = createWheel(container.querySelector('#wheel-seconds'), { min: 0, max: 59, initial: 0, onChange: updateGradePreview });
+    const secondsWheel = createWheel(container.querySelector('#wheel-seconds'), { min: 0, max: 59, initial: 0, onChange: updateGradePreview, circular: true });
 
     container.querySelector('#save-run-btn').addEventListener('click', async () => {
       const totalSeconds = minutesWheel.value * 60 + secondsWheel.value;
