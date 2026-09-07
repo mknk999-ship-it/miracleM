@@ -151,18 +151,25 @@
     }
   }
 
-  // 남자 31~35세 3km 기준 등급표(1급 4:44/km, 2급 5:08/km, 3급 5:32/km 이내)를
-  // km당 페이스로 환산해 거리와 무관하게 적용한다.
-  const RUNNING_GRADE_THRESHOLDS = [
-    { grade: 1, label: '1급', maxPaceSec: 4 * 60 + 44 },
-    { grade: 2, label: '2급', maxPaceSec: 5 * 60 + 8 },
-    { grade: 3, label: '3급', maxPaceSec: 5 * 60 + 32 },
+  // 남자 31~35세 3km 기준 등급표. 페이스로 환산하지 않고 원문 그대로:
+  // 3km 이상을 뛰었을 때만 판정하며, 3km 기록이 16:36(3급 컷)을 넘기거나
+  // 3km 미만을 뛰었으면 등급 없음(불합격)으로 처리한다.
+  const RUNNING_GRADE_MAX_SECONDS = [
+    { grade: 1, label: '1급', maxSeconds: 14 * 60 + 12 },
+    { grade: 2, label: '2급', maxSeconds: 15 * 60 + 24 },
+    { grade: 3, label: '3급', maxSeconds: 16 * 60 + 36 },
   ];
+  const RUNNING_GRADE_MIN_KM = 3;
 
   function runningGrade(distanceKm, totalSeconds) {
-    if (!distanceKm || distanceKm <= 0 || !totalSeconds || totalSeconds <= 0) return null;
-    const paceSec = totalSeconds / distanceKm;
-    return RUNNING_GRADE_THRESHOLDS.find((t) => paceSec <= t.maxPaceSec) || null;
+    if (!distanceKm || distanceKm < RUNNING_GRADE_MIN_KM) return null;
+    if (!totalSeconds || totalSeconds <= 0) return null;
+    return RUNNING_GRADE_MAX_SECONDS.find((t) => totalSeconds <= t.maxSeconds) || null;
+  }
+
+  function runningGradeLabel(distanceKm, totalSeconds) {
+    const grade = runningGrade(distanceKm, totalSeconds);
+    return grade ? { label: grade.label, pass: true } : { label: '불합격', pass: false };
   }
 
   function escapeHtml(str) {
@@ -193,5 +200,6 @@
     beep,
     beepTimes,
     runningGrade,
+    runningGradeLabel,
   };
 })();
