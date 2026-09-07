@@ -22,11 +22,17 @@
 
     let currentIdx = idxForValue(Math.min(Math.max(initial, min), max));
     let current = values[currentIdx];
+    let liveIdx = currentIdx; // 드래그 중 실시간으로 지나가는 칸(하이라이트/진동용)
+
+    function paintSelected(idx) {
+      items.forEach((it, i) => it.classList.toggle('selected', i === idx));
+    }
 
     function setSelectedIdx(idx) {
       currentIdx = idx;
       current = values[idx];
-      items.forEach((it, i) => it.classList.toggle('selected', i === idx));
+      liveIdx = idx;
+      paintSelected(idx);
     }
 
     function scrollToIdx(idx, smooth) {
@@ -38,9 +44,17 @@
 
     let scrollTimer = null;
     viewportEl.addEventListener('scroll', () => {
+      // 드래그 도중에도 숫자 한 칸을 지날 때마다 즉시 하이라이트 갱신 + 진동("드르륵" 느낌)
+      const rawIdx = Math.min(Math.max(Math.round(viewportEl.scrollTop / WHEEL_ITEM_HEIGHT), 0), values.length - 1);
+      if (rawIdx !== liveIdx) {
+        liveIdx = rawIdx;
+        paintSelected(rawIdx);
+        if (navigator.vibrate) navigator.vibrate(10);
+      }
+
       clearTimeout(scrollTimer);
       scrollTimer = setTimeout(() => {
-        let idx = Math.min(Math.max(Math.round(viewportEl.scrollTop / WHEEL_ITEM_HEIGHT), 0), values.length - 1);
+        let idx = liveIdx;
 
         if (circular) {
           const repeatIndex = Math.floor(idx / rangeSize);
@@ -55,14 +69,9 @@
           scrollToIdx(idx, true);
         }
 
-        if (idx !== currentIdx) {
-          const changed = values[idx] !== current;
-          setSelectedIdx(idx);
-          if (changed) {
-            if (navigator.vibrate) navigator.vibrate(10);
-            onChange(current);
-          }
-        }
+        const changed = values[idx] !== current;
+        setSelectedIdx(idx);
+        if (changed) onChange(current);
       }, 120);
     });
 
