@@ -780,6 +780,7 @@ a { color: inherit; }
   margin-top: 4px;
 }
 .run-grade { color: var(--star); font-weight: 600; }
+.run-grade.fail { color: var(--danger); }
 
 .lap-list {
   margin-top: 22px;

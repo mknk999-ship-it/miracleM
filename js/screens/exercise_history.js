@@ -17,12 +17,12 @@
       title: '달리기 기록',
       backRoute: 'exercise-running',
       formatAgg: (agg) => {
-        const grade = Util.runningGrade(agg.distance, agg.seconds);
-        return `${agg.distance.toFixed(1)}km<br>${Util.formatDuration(agg.seconds)}${grade ? `<br><span class="run-grade">${grade.label}</span>` : ''}`;
+        const g = Util.runningGradeLabel(agg.distance, agg.seconds);
+        return `${agg.distance.toFixed(1)}km<br>${Util.formatDuration(agg.seconds)}<br><span class="run-grade${g.pass ? '' : ' fail'}">${g.label}</span>`;
       },
       formatSession: (log) => {
-        const grade = Util.runningGrade(log.distance_km, log.total_seconds);
-        return `${Number(log.distance_km).toFixed(2)}km · ${Util.formatDuration(log.total_seconds)}${grade ? ` · <span class="run-grade">${grade.label}</span>` : ''}`;
+        const g = Util.runningGradeLabel(log.distance_km, log.total_seconds);
+        return `${Number(log.distance_km).toFixed(2)}km · ${Util.formatDuration(log.total_seconds)} · <span class="run-grade${g.pass ? '' : ' fail'}">${g.label}</span>`;
       },
     },
   };

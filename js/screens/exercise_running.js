@@ -55,11 +55,11 @@
     el.innerHTML = `
       <div class="section-title">오늘 기록</div>
       ${logs.map((log) => {
-        const grade = Util.runningGrade(log.distance_km, log.total_seconds);
+        const g = Util.runningGradeLabel(log.distance_km, log.total_seconds);
         return `
           <div class="rank-row" data-id="${log.id}">
             <div class="rank-info">
-              <div class="rank-time">${Number(log.distance_km).toFixed(2)}km · ${Util.formatDuration(log.total_seconds)}${grade ? ` · <span class="run-grade">${grade.label}</span>` : ''}</div>
+              <div class="rank-time">${Number(log.distance_km).toFixed(2)}km · ${Util.formatDuration(log.total_seconds)} · <span class="run-grade${g.pass ? '' : ' fail'}">${g.label}</span></div>
               <div class="rank-date">${Util.formatTimeOfDay(log.created_at)}</div>
             </div>
             <button class="rank-delete" data-id="${log.id}" title="삭제">${Icons.svg('trash')}</button>
@@ -160,10 +160,9 @@
         gradePreviewEl.innerHTML = '';
         return;
       }
-      const paceSec = totalSeconds / distanceKm;
-      const paceLabel = `${Math.floor(paceSec / 60)}:${Util.pad(Math.round(paceSec % 60))}/km`;
-      const grade = Util.runningGrade(distanceKm, totalSeconds);
-      gradePreviewEl.innerHTML = `평균 페이스 ${paceLabel} · ${grade ? `<span class="run-grade">${grade.label}</span>` : '등급 기준 미달'}`;
+      const g = Util.runningGradeLabel(distanceKm, totalSeconds);
+      const note = distanceKm < 3 ? '3km 이상부터 등급 판정' : '3km 기준';
+      gradePreviewEl.innerHTML = `${note} · <span class="run-grade${g.pass ? '' : ' fail'}">${g.label}</span>`;
     }
 
     container.querySelectorAll('.run-chip').forEach((btn) => {
@@ -194,7 +193,7 @@
         return;
       }
 
-      const grade = Util.runningGrade(distanceKm, totalSeconds);
+      const g = Util.runningGradeLabel(distanceKm, totalSeconds);
       try {
         await Api.saveExercise(Util.todayStr(), 1, totalSeconds, [], 'running', distanceKm);
         distanceKm = 0;
@@ -202,7 +201,7 @@
         minutesWheel.set(0);
         secondsWheel.set(0);
         updateGradePreview();
-        Util.toast(grade ? `달리기 기록이 저장되었어요! (${grade.label})` : '달리기 기록이 저장되었어요!');
+        Util.toast(`달리기 기록이 저장되었어요! (${g.label})`);
         await refreshTodayLogs(container);
       } catch (e) {
         Util.toast(e.message || '저장 중 오류가 발생했습니다.', { error: true });
