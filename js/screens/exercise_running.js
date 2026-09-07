@@ -58,7 +58,10 @@
         if (idx !== currentIdx) {
           const changed = values[idx] !== current;
           setSelectedIdx(idx);
-          if (changed) onChange(current);
+          if (changed) {
+            if (navigator.vibrate) navigator.vibrate(10);
+            onChange(current);
+          }
         }
       }, 120);
     });
