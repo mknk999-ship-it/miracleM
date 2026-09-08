@@ -782,6 +782,15 @@ a { color: inherit; }
 .run-grade { color: var(--star); font-weight: 600; }
 .run-grade.fail { color: var(--danger); }
 
+.count-input {
+  width: 100%;
+  padding: 16px;
+  font-size: 28px;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 8px;
+}
+
 .lap-list {
   margin-top: 22px;
   display: flex;
