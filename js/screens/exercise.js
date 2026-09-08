@@ -21,6 +21,20 @@
       title: '달리기',
       sub: '거리와 기록을 입력해서 저장',
     },
+    {
+      route: 'exercise-pushup',
+      icon: 'pushup',
+      accent: 'gold',
+      title: '푸쉬업',
+      sub: '10초 준비 · 2분 측정 · 개수 입력',
+    },
+    {
+      route: 'exercise-situp',
+      icon: 'situp',
+      accent: 'plain',
+      title: '윗몸일으키기',
+      sub: '10초 준비 · 2분 측정 · 개수 입력',
+    },
   ];
 
   async function render(container) {

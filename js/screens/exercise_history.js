@@ -25,6 +25,30 @@
         return `${Number(log.distance_km).toFixed(2)}km · ${Util.formatDuration(log.total_seconds)} · <span class="run-grade${g.pass ? '' : ' fail'}">${g.label}</span>`;
       },
     },
+    pushup: {
+      title: '푸쉬업 기록',
+      backRoute: 'exercise-pushup',
+      formatAgg: (agg) => {
+        const g = Util.countGradeLabel('pushup', agg.sets);
+        return `${agg.sets}개<br><span class="run-grade${g.pass ? '' : ' fail'}">${g.label}</span>`;
+      },
+      formatSession: (log) => {
+        const g = Util.countGradeLabel('pushup', log.total_sets);
+        return `${log.total_sets}개 · <span class="run-grade${g.pass ? '' : ' fail'}">${g.label}</span>`;
+      },
+    },
+    situp: {
+      title: '윗몸일으키기 기록',
+      backRoute: 'exercise-situp',
+      formatAgg: (agg) => {
+        const g = Util.countGradeLabel('situp', agg.sets);
+        return `${agg.sets}개<br><span class="run-grade${g.pass ? '' : ' fail'}">${g.label}</span>`;
+      },
+      formatSession: (log) => {
+        const g = Util.countGradeLabel('situp', log.total_sets);
+        return `${log.total_sets}개 · <span class="run-grade${g.pass ? '' : ' fail'}">${g.label}</span>`;
+      },
+    },
   };
 
   let viewYear, viewMonth, currentType;

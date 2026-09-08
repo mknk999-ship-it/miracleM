@@ -172,6 +172,29 @@
     return grade ? { label: grade.label, pass: true } : { label: '불합격', pass: false };
   }
 
+  // 남자 31~35세, 2분간 횟수 기준 등급표 (체력검정 기준표)
+  const COUNT_GRADE_TABLES = {
+    pushup: [
+      { label: '특급', minCount: 68 },
+      { label: '1급', minCount: 60 },
+      { label: '2급', minCount: 52 },
+      { label: '3급', minCount: 44 },
+    ],
+    situp: [
+      { label: '특급', minCount: 80 },
+      { label: '1급', minCount: 72 },
+      { label: '2급', minCount: 65 },
+      { label: '3급', minCount: 57 },
+    ],
+  };
+
+  function countGradeLabel(type, count) {
+    const table = COUNT_GRADE_TABLES[type];
+    if (!table || count === null || count === undefined || count < 0) return { label: '불합격', pass: false };
+    const hit = table.find((t) => count >= t.minCount);
+    return hit ? { label: hit.label, pass: true } : { label: '불합격', pass: false };
+  }
+
   function escapeHtml(str) {
     return String(str)
       .replace(/&/g, '&amp;')
@@ -201,5 +224,6 @@
     beepTimes,
     runningGrade,
     runningGradeLabel,
+    countGradeLabel,
   };
 })();
