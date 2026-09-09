@@ -162,7 +162,7 @@
           <h2>${monthLabel(viewYear, viewMonth)}</h2>
           <button class="month-nav-btn" id="next-month">${Icons.svg('chevronRight')}</button>
         </div>
-        <div class="diary-cal-grid">
+        <div class="diary-cal-grid exercise-history-grid">
           ${WEEKDAYS.map((w) => `<div class="cal-weekday">${w}</div>`).join('')}
           ${buildDayCells(viewYear, viewMonth, byDate, todayStr, meta)}
         </div>
