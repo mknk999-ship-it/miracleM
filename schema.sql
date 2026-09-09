@@ -162,24 +162,15 @@ where not exists (select 1 from daily_affirmations);
 -- ----------------------------------------------------------------------------
 
 -- 5-0. 내부 전용 PIN 검증 함수 (클라이언트에는 직접 GRANT 하지 않음)
+-- 비밀번호 입력 기능을 당분간 비활성화: 항상 통과시킨다 (p_pin 값은 무시됨).
 create or replace function daily_verify_pin(p_pin text)
 returns void
 language plpgsql
 security definer
 set search_path = public
 as $$
-declare
-  v_hash text;
 begin
-  select value into v_hash from daily_settings where key = 'app_pin_hash';
-
-  if v_hash is null then
-    raise exception 'PIN이 설정되지 않았습니다. schema.sql 3번 항목을 실행하세요.';
-  end if;
-
-  if p_pin is null or crypt(p_pin, v_hash) <> v_hash then
-    raise exception '비밀번호가 올바르지 않습니다.';
-  end if;
+  return;
 end;
 $$;
 

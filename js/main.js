@@ -7,7 +7,7 @@
     }
   }
 
-  window.addEventListener('app:unlocked', boot, { once: true });
+  document.addEventListener('DOMContentLoaded', boot);
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
