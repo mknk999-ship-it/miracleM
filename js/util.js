@@ -155,6 +155,7 @@
   // 3km 이상을 뛰었을 때만 판정하며, 3km 기록이 16:36(3급 컷)을 넘기거나
   // 3km 미만을 뛰었으면 등급 없음(불합격)으로 처리한다.
   const RUNNING_GRADE_MAX_SECONDS = [
+    { grade: 0, label: '특급', maxSeconds: 13 * 60 + 0 },
     { grade: 1, label: '1급', maxSeconds: 14 * 60 + 12 },
     { grade: 2, label: '2급', maxSeconds: 15 * 60 + 24 },
     { grade: 3, label: '3급', maxSeconds: 16 * 60 + 36 },
