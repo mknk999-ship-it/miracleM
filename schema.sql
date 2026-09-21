@@ -252,9 +252,13 @@ end;
 $$;
 
 -- 5-3b. 미스바(mizpah_readers) 연동: 이명세훈의 말씀 카운팅이 지난 확인 시점보다
---       1 이상 올랐으면 해당 날짜에 말씀 X 표시를 자동으로 남긴다.
+--       1 이상 올랐으면 말씀 X 표시를 자동으로 남긴다.
 --       (홈 화면 진입/새로고침 시마다 호출되며, 터치로 켜고 끄던 기존 방식은
 --        더 이상 쓰지 않는다. 마지막으로 확인한 총량은 daily_settings에 저장.)
+--       표시할 날짜는 앱을 연 날(p_date)이 아니라 mizpah_readers.updated_at
+--       (실제로 미스바에서 읽음을 기록한 시각, KST 기준 날짜)을 사용한다.
+--       이렇게 해야 미스바에서 읽은 날과 미라클M을 연 날이 다를 때도
+--       실제로 읽은 날짜에 표시가 남는다.
 create or replace function daily_sync_scripture_from_mizpah(p_pin text, p_date date default current_date)
 returns jsonb
 language plpgsql
@@ -263,19 +267,34 @@ set search_path = public
 as $$
 declare
   v_current_total numeric;
+  v_current_updated timestamptz;
   v_last_total numeric;
+  v_last_updated timestamptz;
   v_marked boolean := false;
+  v_mark_date date;
 begin
   perform daily_verify_pin(p_pin);
 
-  select total into v_current_total from mizpah_readers where name = '이명세훈';
+  select total, updated_at into v_current_total, v_current_updated
+    from mizpah_readers where name = '이명세훈';
   v_current_total := coalesce(v_current_total, 0);
 
   select value::numeric into v_last_total from daily_settings where key = 'mizpah_scripture_last_total';
   v_last_total := coalesce(v_last_total, 0);
 
-  if v_current_total > v_last_total then
-    insert into daily_scripture_marks (mark_date, user_name) values (p_date, '세훈')
+  select value::timestamptz into v_last_updated from daily_settings where key = 'mizpah_scripture_last_updated_at';
+
+  if v_current_total > v_last_total
+     and v_current_updated is not null
+     and (v_last_updated is null or v_current_updated > v_last_updated) then
+    v_mark_date := (v_current_updated at time zone 'Asia/Seoul')::date;
+    insert into daily_scripture_marks (mark_date, user_name) values (v_mark_date, '세훈')
+    on conflict (mark_date, user_name) do nothing;
+    v_marked := true;
+  elsif v_current_total > v_last_total then
+    -- updated_at을 알 수 없는 경우에 한해서만 앱을 연 날짜로 대체 표시한다.
+    v_mark_date := p_date;
+    insert into daily_scripture_marks (mark_date, user_name) values (v_mark_date, '세훈')
     on conflict (mark_date, user_name) do nothing;
     v_marked := true;
   end if;
@@ -284,8 +303,15 @@ begin
   values ('mizpah_scripture_last_total', v_current_total::text)
   on conflict (key) do update set value = excluded.value, updated_at = now();
 
+  if v_current_updated is not null then
+    insert into daily_settings (key, value)
+    values ('mizpah_scripture_last_updated_at', v_current_updated::text)
+    on conflict (key) do update set value = excluded.value, updated_at = now();
+  end if;
+
   return jsonb_build_object(
-    'marked_today', v_marked,
+    'marked', v_marked,
+    'marked_date', v_mark_date,
     'current_total', v_current_total,
     'previous_total', v_last_total
   );
