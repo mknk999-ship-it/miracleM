@@ -55,21 +55,19 @@
   }
 
   async function handleWake(container) {
-    const btn = container.querySelector('#wake-btn');
-    if (btn.classList.contains('done')) {
-      Util.toast('오늘은 이미 기상을 기록했어요.');
-      return;
-    }
-    btn.disabled = true;
+    const dateStr = Util.todayStr();
+    const now = new Date();
+    const nowHHMM = `${Util.pad(now.getHours())}:${Util.pad(now.getMinutes())}`;
+    let wakeRow = null;
     try {
-      await Api.logWake(Util.todayStr());
+      wakeRow = await Api.getWake(dateStr);
+    } catch (e) {
+      // 조회 실패해도 입력 시트는 그대로 띄운다
+    }
+    openWakeTimeSheet(container, dateStr, wakeRow ? wakeRow.wake_time : null, async () => {
       await Promise.all([refreshTodayWakeState(container), loadWakeCalendar(container)]);
       Util.toast('기상을 기록했어요. 좋은 아침이에요!');
-    } catch (e) {
-      Util.toast(e.message || '저장 중 오류가 발생했습니다.', { error: true });
-    } finally {
-      btn.disabled = false;
-    }
+    }, nowHHMM);
   }
 
   function toLocalHHMM(iso) {
@@ -103,13 +101,14 @@
     return html;
   }
 
-  function openWakeTimeSheet(container, dateStr, currentIso, onSaved) {
+  function openWakeTimeSheet(container, dateStr, currentIso, onSaved, defaultHHMM) {
     const backdrop = document.createElement('div');
     backdrop.className = 'sheet-backdrop';
+    const initialValue = currentIso ? toLocalHHMM(currentIso) : (defaultHHMM || '');
     backdrop.innerHTML = `
       <div class="sheet">
         <h3>${Util.formatDateLabel(dateStr)} 기상 시각</h3>
-        <input type="time" id="wake-time-input" value="${currentIso ? toLocalHHMM(currentIso) : ''}"
+        <input type="time" id="wake-time-input" value="${initialValue}"
           style="width:100%;padding:14px;font-size:16px;margin-bottom:14px;">
         <div class="sheet-actions">
           ${currentIso ? '<button class="btn btn-danger" id="wake-time-clear">삭제</button>' : ''}
