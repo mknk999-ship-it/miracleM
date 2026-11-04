@@ -150,7 +150,7 @@
             <span id="run-distance-value">0.0</span><span class="run-distance-unit">km</span>
           </div>
           <div class="run-distance-buttons">
-            <button type="button" class="run-chip" data-add="0.5">+500m</button>
+            <button type="button" class="run-chip" data-add="0.1">+100m</button>
             <button type="button" class="run-chip" data-add="1">+1km</button>
             <button type="button" class="run-chip" data-add="3">+3km</button>
           </div>
