@@ -5,12 +5,13 @@
         <div class="topbar">
           <button class="icon-btn" id="back-btn">${Icons.svg('arrowLeft')}</button>
           <h1>지난 일기</h1>
-          <span style="width:36px"></span>
+          <button class="text-link" id="go-export">모아보기</button>
         </div>
         <div id="diary-list-body"><div class="spinner"></div></div>
       </div>
     `;
     container.querySelector('#back-btn').addEventListener('click', () => Router.go('diary'));
+    container.querySelector('#go-export').addEventListener('click', () => Router.go('diary-export'));
 
     const bodyEl = container.querySelector('#diary-list-body');
     const entries = await Api.listDiary(60, 0);
